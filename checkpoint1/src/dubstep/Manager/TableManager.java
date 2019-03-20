@@ -18,7 +18,6 @@ public class TableManager {
 
     static boolean createTable(CreateTable createTable){
 
-
 //      Store Table and corresponding Schema
         String tableName = createTable.getTable().getName();
         TableNode newTable = new TableNode(createTable);

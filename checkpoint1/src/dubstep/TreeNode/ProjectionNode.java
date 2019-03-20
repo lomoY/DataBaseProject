@@ -1,9 +1,8 @@
 package dubstep.TreeNode;
 
-import dubstep.Manager.TreeManager;
+import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.*;
-import  net.sf.jsqlparser.expression.Expression;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -30,13 +29,26 @@ public class ProjectionNode extends TreeNode implements SelectItemVisitor {
 
 //        Set TableNode as Child
         FromItem fromItem=plainSelect.getFromItem();
-        TreeManager tm2 = new TreeManager();
-        fromItem.accept(tm2);
+//        ProjectionTypeNode tm2 = new ProjectionTypeNode();
+        FromItemNode fromItemNode = new FromItemNode(fromItem);
+//        fromItem.accept(tm2);
         if(leftChildNode==null){
-            this.setLeftChildNode(tm2.getParseTree());
+//            this.setLeftChildNode(tm2.getParseTree());
+                this.setLeftChildNode(fromItemNode);
         }else{
-            this.leftChildNode.setLeftChildNode(tm2.getParseTree());
+//            this.leftChildNode.setLeftChildNode(tm2.getParseTree());
+            this.leftChildNode.setLeftChildNode(fromItemNode);
         }
+
+/**
+ * 在新的实现中，上面这一条只需要改成：
+ * ProjectionTypeNode tm2 = new ProjectionTypeNode(fromitem);
+ *
+ */
+
+
+//        要把fromtable改成fromTable manager，并且应该用一个对象来建立唯一的tree
+//        FromItemNode fromItemNode = new FromItemNode(fromItem1);
     }
 
     /**
@@ -109,22 +121,6 @@ public class ProjectionNode extends TreeNode implements SelectItemVisitor {
         this.projectAttrs.add(selectExpressionItem);
     }
 
-    private void setSelectAttr(List<SelectItem> selectItems){
-        for(SelectItem selectitem:selectItems){
-            selectitem.accept(this);
-        }
-    }
-
-
-
-
-
-
-
-
-
-
-
 
 
     @Override
@@ -140,5 +136,11 @@ public class ProjectionNode extends TreeNode implements SelectItemVisitor {
     @Override
     public Spliterator spliterator() {
         return null;
+    }
+
+    private void setSelectAttr(List<SelectItem> selectItems){
+        for(SelectItem selectitem:selectItems){
+            selectitem.accept(this);
+        }
     }
 }

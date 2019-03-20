@@ -1,5 +1,6 @@
 package dubstep.Manager;
 
+import dubstep.TreeNode.TreeNode;
 import dubstep.TreeNode.Tuple;
 import net.sf.jsqlparser.statement.StatementVisitor;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
@@ -13,13 +14,14 @@ import net.sf.jsqlparser.statement.update.Update;
 
 public class StatementManager implements StatementVisitor {
 
-
+    TreeNode parseTree;
 
     @Override
     public void visit(Select select) {
-        TreeManager treeManager = new TreeManager();
-        treeManager.generateTree(select);
-        for (Tuple tuple : treeManager.getParseTree()){
+
+        parseTree = new ProjectionTypeNode(select.getSelectBody());
+
+        for (Tuple tuple : parseTree){
             System.out.println(tuple);
         }
     }

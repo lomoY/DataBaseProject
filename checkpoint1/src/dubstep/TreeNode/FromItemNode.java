@@ -1,11 +1,9 @@
 package dubstep.TreeNode;
 
+import dubstep.Manager.ProjectionTypeNode;
 import dubstep.Manager.TableManager;
 import net.sf.jsqlparser.schema.Table;
-import net.sf.jsqlparser.statement.select.FromItemVisitor;
-import net.sf.jsqlparser.statement.select.SelectBody;
-import net.sf.jsqlparser.statement.select.SubJoin;
-import net.sf.jsqlparser.statement.select.SubSelect;
+import net.sf.jsqlparser.statement.select.*;
 
 import java.util.Iterator;
 import java.util.Spliterator;
@@ -21,7 +19,18 @@ import java.util.function.Consumer;
 
 public class FromItemNode extends TreeNode implements FromItemVisitor {
 
-    private class Itr implements Iterator{
+
+    public FromItemNode(FromItem fromItem) {
+        fromItem.accept(this);
+    }
+
+    private class Itr implements Iterator<Tuple>{
+        Iterator<Tuple> lfItr;
+
+        public Itr() {
+            lfItr = FromItemNode.this.leftChildNode.iterator();
+        }
+
         @Override
         public void remove() {
 
@@ -34,12 +43,18 @@ public class FromItemNode extends TreeNode implements FromItemVisitor {
 
         @Override
         public boolean hasNext() {
-            return false;
+            if(lfItr.hasNext()){
+                return true;
+            }else {
+
+                return false;
+            }
         }
 
         @Override
-        public Object next() {
-            return null;
+        public Tuple next() {
+            Tuple tp = this.lfItr.next();
+            return tp;
         }
     }
 
@@ -56,7 +71,7 @@ public class FromItemNode extends TreeNode implements FromItemVisitor {
 
     @Override
     public Iterator<Tuple> iterator() {
-        return null;
+        return new Itr();
     }
 
 
@@ -64,10 +79,11 @@ public class FromItemNode extends TreeNode implements FromItemVisitor {
 
 //    FromItem Visitor
 
+//    这里就是进来一个table
     @Override
     public void visit(Table table) {
         String tableName = table.getName();
-//        this.parseTree= TableManager.getTable(tableName);
+        this.leftChildNode= TableManager.getTable(tableName);
     }
 
     @Override
@@ -75,11 +91,11 @@ public class FromItemNode extends TreeNode implements FromItemVisitor {
 
     }
 
+    //SELECT FIRSTNAME, LASTNAME, WEIGHT, BIRTHDATE FROM (SELECT FIRSTNAME, LASTNAME,FIRSTSEASON, WEIGHT, BIRTHDATE FROM PLAYERS);
+//    中的SELECT FIRSTNAME, LASTNAME,FIRSTSEASON, WEIGHT, BIRTHDATE FROM PLAYERS
+//    subselect = select
     @Override
     public void visit(SubSelect subSelect) {
-        SelectBody select = subSelect.getSelectBody();
-
-//        select.accept(this);
-
+            this.leftChildNode = new ProjectionTypeNode(subSelect.getSelectBody());
     }
 }
