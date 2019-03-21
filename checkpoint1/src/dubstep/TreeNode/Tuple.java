@@ -6,34 +6,32 @@ import net.sf.jsqlparser.expression.PrimitiveValue;
 import net.sf.jsqlparser.expression.StringValue;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
+import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 import net.sf.jsqlparser.statement.select.SelectItem;
 
 import java.util.*;
 
 /**
  * @author Lomo
- *
+ * Tuple的初始化是在TableNode里面完成的
  * 我们需要Return出去的tuple
  */
 
 public class Tuple {
     Map<String,Column> rawColumns = new HashMap<>();//用来存储原本模式的column
     Map<String,PrimitiveValue> columnValues = new HashMap<>();//only for print out
-//    Map<String,ColumnDefinition> coldefinitions=new HashMap<>();
     List<ColumnDefinition> coldefinitions = new ArrayList<>();
 
     public Tuple(){
 
     }
+
     public Tuple(List<ColumnDefinition> columnDefinitions){
         for(ColumnDefinition columnDefinition:columnDefinitions){
-//            coldefinitions.put(columnDefinition.getColumnName(),columnDefinition);
             coldefinitions.add(columnDefinition);
         }
 
     }
-
-
 
     public Column getRawColumn(String columnName){
         return rawColumns.get(columnName);
@@ -56,20 +54,47 @@ public class Tuple {
         return targetColumn;
     }
 
+    /**
+     * Update Schema。 是在tuple里update呢，还是在TableNode里update
+     * @param selectItems
+     */
 
-    public void upDateColumn(List<SelectItem> selectItems){
+    public void upDateColumn(List<SelectExpressionItem> selectItems){
 
         Map<String,Column> tempColmns = new HashMap<>();
         Map<String,PrimitiveValue> tempColumnValues = new HashMap<>();
-//        Map<String,ColumnDefinition> tempColdefinitions=new TreeMap<>();
         List tempColdefinitions = new ArrayList();
 
-        for(SelectItem selectItem:selectItems){
-            String attname = selectItem.toString();
-            tempColmns.put(attname,this.rawColumns.get(attname));
-            tempColumnValues.put(attname,this.columnValues.get(attname));
-//            tempColdefinitions.put(attname,this.coldefinitions.get(attname));
-            tempColdefinitions.add(this.getColdefinition(attname));
+        for(SelectExpressionItem selectItem:selectItems){
+
+
+            if(selectItem.getAlias()==null){
+                String attName = selectItem.getExpression().toString();//p1.firstname 无法实现getcolumnname
+//                todo 用正则表达式来解决这个问题
+                tempColmns.put(attName,this.rawColumns.get(attName));
+                tempColumnValues.put(attName,this.columnValues.get(attName));//这一步把value也一起更新了
+                tempColdefinitions.add(this.getColdefinition(attName));
+
+            }else{
+                    String attName;
+                    String newName;
+                if(selectItem.getAlias()!=this.getColdefinition(selectItem.getAlias()).getColumnName()){//first time
+
+                    attName = selectItem.getExpression().toString();
+                    newName = selectItem.getAlias();
+
+                }else{
+                    attName =selectItem.getAlias();
+                    newName = selectItem.getAlias();
+                }
+
+                tempColmns.put(newName,Tuple.this.rawColumns.get(attName));
+                tempColumnValues.put(newName,this.columnValues.get(attName));
+                ColumnDefinition tempDefinition = this.getColdefinition(attName);
+                tempDefinition.setColumnName(newName);
+                tempColdefinitions.add(tempDefinition);
+
+            }
         }
 
         this.rawColumns=tempColmns;
@@ -82,13 +107,17 @@ public class Tuple {
         this.columnValues.put(column.getColumnName(),columnValue);
     }
 
+    public void rename(List<String> rename){
 
+    }
 
     @Override
     public String toString() {
+
         String result="";
 
         for (int i = 0; i < this.coldefinitions.size(); i++) {
+
             try {
                 String columnName = coldefinitions.get(i).getColumnName();
                 PrimitiveValue columnValue = this.columnValues.get(columnName);

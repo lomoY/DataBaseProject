@@ -1,5 +1,6 @@
 package dubstep.TreeNode;
 
+import dubstep.Manager.TableManager;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.*;
@@ -11,15 +12,23 @@ import java.util.function.Consumer;
  */
 
 public class ProjectionNode extends TreeNode implements SelectItemVisitor {
-    String TableName;
+    String FromItemName;
     Table TableObj;
-    List<SelectItem> projectAttrs = new ArrayList<SelectItem>();
+    List<SelectExpressionItem> projectAttrs = new ArrayList<>();
+    List<String> renameAttrs = new ArrayList<String>();
 
 
     public ProjectionNode(PlainSelect plainSelect) {
 
-        setSelectAttr(plainSelect.getSelectItems());
+//        set columns that need to be projected
+//        if(plainSelect.getFromItem().getAlias()!=null){
+//            FromItemName=plainSelect.getFromItem().getAlias();
+//        }else{
+//            FromItemName=plainSelect.getFromItem().toString();
+//        }
 
+//        ------------------------
+        setSelectAttr(plainSelect.getSelectItems());
 //        Set SelectionNode as Child
         Expression whereCondition = plainSelect.getWhere();
         if(whereCondition!=null){
@@ -29,26 +38,12 @@ public class ProjectionNode extends TreeNode implements SelectItemVisitor {
 
 //        Set TableNode as Child
         FromItem fromItem=plainSelect.getFromItem();
-//        ProjectionTypeNode tm2 = new ProjectionTypeNode();
         FromItemNode fromItemNode = new FromItemNode(fromItem);
-//        fromItem.accept(tm2);
         if(leftChildNode==null){
-//            this.setLeftChildNode(tm2.getParseTree());
                 this.setLeftChildNode(fromItemNode);
         }else{
-//            this.leftChildNode.setLeftChildNode(tm2.getParseTree());
             this.leftChildNode.setLeftChildNode(fromItemNode);
         }
-
-/**
- * 在新的实现中，上面这一条只需要改成：
- * ProjectionTypeNode tm2 = new ProjectionTypeNode(fromitem);
- *
- */
-
-
-//        要把fromtable改成fromTable manager，并且应该用一个对象来建立唯一的tree
-//        FromItemNode fromItemNode = new FromItemNode(fromItem1);
     }
 
     /**
@@ -59,7 +54,7 @@ public class ProjectionNode extends TreeNode implements SelectItemVisitor {
 
     private class Itr implements Iterator<Tuple> {
         Iterator<Tuple> lfir;
-        List<SelectItem> projectAttrs;
+        List<SelectExpressionItem> projectAttrs;
 
         public Itr() {
             lfir = ProjectionNode.this.leftChildNode.iterator();
@@ -74,8 +69,15 @@ public class ProjectionNode extends TreeNode implements SelectItemVisitor {
 
         @Override
         public Tuple next() {
-            Tuple tp = lfir.next();
-            tp.upDateColumn(projectAttrs);
+            Tuple tp = lfir.next();//FIRSTNAME AS A
+//            在update的时候，要把心的schema传进去，所以alies是要在这里获得的
+//            在这里要做两件事。1. 选取需要的column；2.更新column的名字
+//            问题，应该在哪里更新schema呢？是在next里呢，还是在Itr初始化的时候呢...
+            //最好是先通过更新schema，然后再来做
+
+            if(projectAttrs.size()!=0){//if not Players.*
+                tp.upDateColumn(projectAttrs);
+            }
             return tp;
         }
 
@@ -87,7 +89,6 @@ public class ProjectionNode extends TreeNode implements SelectItemVisitor {
                 return false;
             }
         }
-
 
         @Override
         public void remove() {}
@@ -108,17 +109,31 @@ public class ProjectionNode extends TreeNode implements SelectItemVisitor {
 
     @Override
     public void visit(AllColumns allColumns) {
-
+        // nothing need to be changed if select *
     }
+//  PLAYERS.*
+//  TABLE"PLAYERS"
 
     @Override
     public void visit(AllTableColumns allTableColumns) {
-
+        // nothing need to be changed if select PLAYERS.*
     }
+
+//    FIRSTNAME AS A
+//    COLUMNNAME = "FIRSTNAME", ALIAS ="A"
+
+//    PLAYERS.FIRSTNAME
+//    COLUMNNAME = "FIRSTNAME",TABLE="PLAYERS"
+//
 
     @Override
     public void visit(SelectExpressionItem selectExpressionItem) {
+//        Schema schema = TableManager.getSchema();
+        String alias=selectExpressionItem.getAlias();
         this.projectAttrs.add(selectExpressionItem);
+
+        if(alias!=null){
+        }
     }
 
 
@@ -138,6 +153,15 @@ public class ProjectionNode extends TreeNode implements SelectItemVisitor {
         return null;
     }
 
+//    FIRSTNAME AS A
+//    COLUMNNAME = "FIRSTNAME", ALIAS ="A"
+//
+//    PLAYERS.FIRSTNAME
+//    expression
+//        |-expression
+//              |-columnName:FIRSTNAME
+//              |-table:p1
+//    COLUMNNAME = "FIRSTNAME",TABLE="PLAYERS"
     private void setSelectAttr(List<SelectItem> selectItems){
         for(SelectItem selectitem:selectItems){
             selectitem.accept(this);

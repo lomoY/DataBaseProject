@@ -22,6 +22,8 @@ public class FromItemNode extends TreeNode implements FromItemVisitor {
 
     public FromItemNode(FromItem fromItem) {
         fromItem.accept(this);
+        //ALIES = P1
+        String alies = fromItem.getAlias();
     }
 
     private class Itr implements Iterator<Tuple>{
@@ -79,10 +81,11 @@ public class FromItemNode extends TreeNode implements FromItemVisitor {
 
 //    FromItem Visitor
 
-//    这里就是进来一个table
+//    这里就是进来一个table,ALIES = p1
     @Override
     public void visit(Table table) {
-        String tableName = table.getName();
+        String tableName = table.getName();//依旧只返回tablename,不会返回alies
+//       todo update tablename to alies if any
         this.leftChildNode= TableManager.getTable(tableName);
     }
 

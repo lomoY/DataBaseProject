@@ -24,7 +24,7 @@ public class TableManager {
         Schema newSchema  = new Schema(createTable);
         TableMap.put(tableName,newTable);
         SchemaMap.put(tableName,newSchema);
-
+//ALIIES Name
         return true;
     }
 
@@ -37,7 +37,6 @@ public class TableManager {
     }
 
     public static Schema getSchema(String tableName) {
-
         return SchemaMap.get(tableName);
     }
 }

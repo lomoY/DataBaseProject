@@ -3,8 +3,6 @@ package dubstep.TreeNode;
 import dubstep.Manager.EvaluatorManager;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.PrimitiveValue.InvalidPrimitive;
-
-import java.nio.file.DirectoryStream;
 import java.util.Iterator;
 import java.util.Spliterator;
 import java.util.function.Consumer;
@@ -18,12 +16,10 @@ public class SelectionNode  extends TreeNode {
     }
 
     private class Itr implements Iterator<Tuple>{
-        DirectoryStream.Filter<Tuple> filter;
+
         Iterator<Tuple> lfir;
         Tuple tp;
         EvaluatorManager evaluatorManager=new EvaluatorManager(SelectionNode.this.whereCondition);
-        boolean hasnext =true;
-
 
         public Itr() {
             lfir = SelectionNode.this.leftChildNode.iterator();
