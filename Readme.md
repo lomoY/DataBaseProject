@@ -1,12 +1,12 @@
-#DataBase System
+# DataBase System
 
-##Collaborators
+## Collaborators
 
 - LomoY (Admin)
 - Yizhan Wu
 - Nhrkr
 
-##Project Assignments
+## Project Assignments
 
 
 - [x] SelectionNode
@@ -15,7 +15,7 @@
 - [x] Subselection
 - [x] Subselection
 - [x] Alies: r.a, r as p1, a as b
-- [] File Path configuration **@Yizhan Wu**
+- [ ] File Path configuration **@Yizhan Wu**
 - [ ] EvaluatorManager **@Yizhan Wu**
 - [ ] JoinNode **@Nhrkr**
 - [ ] Count **@LomoY**
