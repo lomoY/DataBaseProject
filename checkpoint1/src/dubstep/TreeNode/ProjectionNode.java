@@ -21,13 +21,7 @@ public class ProjectionNode extends TreeNode implements SelectItemVisitor {
     public ProjectionNode(PlainSelect plainSelect) {
 
 //        set columns that need to be projected
-//        if(plainSelect.getFromItem().getAlias()!=null){
-//            FromItemName=plainSelect.getFromItem().getAlias();
-//        }else{
-//            FromItemName=plainSelect.getFromItem().toString();
-//        }
 
-//        ------------------------
         setSelectAttr(plainSelect.getSelectItems());
 //        Set SelectionNode as Child
         Expression whereCondition = plainSelect.getWhere();
@@ -135,8 +129,6 @@ public class ProjectionNode extends TreeNode implements SelectItemVisitor {
         if(alias!=null){
         }
     }
-
-
 
     @Override
     public Iterator iterator() {

@@ -7,9 +7,9 @@ import net.sf.jsqlparser.expression.StringValue;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
-import net.sf.jsqlparser.statement.select.SelectItem;
-
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author Lomo
@@ -64,20 +64,26 @@ public class Tuple {
         Map<String,Column> tempColmns = new HashMap<>();
         Map<String,PrimitiveValue> tempColumnValues = new HashMap<>();
         List tempColdefinitions = new ArrayList();
-
+        String attName;
+        String newName;
         for(SelectExpressionItem selectItem:selectItems){
 
 
             if(selectItem.getAlias()==null){
-                String attName = selectItem.getExpression().toString();//p1.firstname 无法实现getcolumnname
-//                todo 用正则表达式来解决这个问题
+                attName = selectItem.getExpression().toString();//p1.firstname 无法实现getcolumnname
+
+                Pattern regex = Pattern.compile("\\.(\\S+)");
+                Matcher match = regex.matcher(selectItem.getExpression().toString());
+                if (match.find()){
+                    attName = match.group(1);
+                }
+
                 tempColmns.put(attName,this.rawColumns.get(attName));
                 tempColumnValues.put(attName,this.columnValues.get(attName));//这一步把value也一起更新了
                 tempColdefinitions.add(this.getColdefinition(attName));
 
             }else{
-                    String attName;
-                    String newName;
+
                 if(selectItem.getAlias()!=this.getColdefinition(selectItem.getAlias()).getColumnName()){//first time
 
                     attName = selectItem.getExpression().toString();
@@ -88,7 +94,10 @@ public class Tuple {
                     newName = selectItem.getAlias();
                 }
 
-                tempColmns.put(newName,Tuple.this.rawColumns.get(attName));
+                Column tempColumn = this.rawColumns.get(attName);
+                tempColumn.setColumnName(newName);
+
+                tempColmns.put(newName,tempColumn);
                 tempColumnValues.put(newName,this.columnValues.get(attName));
                 ColumnDefinition tempDefinition = this.getColdefinition(attName);
                 tempDefinition.setColumnName(newName);

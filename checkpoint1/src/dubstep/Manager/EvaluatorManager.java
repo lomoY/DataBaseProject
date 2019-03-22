@@ -258,6 +258,7 @@ public class EvaluatorManager extends Eval implements ExpressionVisitor {
     //Return the PrimitiveValue of column
     @Override
     public PrimitiveValue eval(Column column) throws SQLException {
+//        这边是PLAYERS.WEIGHT
         PrimitiveValue columnValue=tp.getColumnValue(column.getColumnName());
         return columnValue;
     }
