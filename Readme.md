@@ -20,5 +20,5 @@
 - [ ] JoinNode **@Nhrkr**
 - [ ] Count **@LomoY**
 - [ ] Sum **@LomoY**
-- [ ] LimitNode**@LomoY**
+- [ ] LimitNode **@LomoY**
 - [ ] SortNode **@LomoY**
