@@ -4,6 +4,8 @@ import dubstep.Manager.TableManager;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.*;
+
+import javax.lang.model.type.NullType;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -16,6 +18,7 @@ public class ProjectionNode extends TreeNode implements SelectItemVisitor {
     Table TableObj;
     List<SelectExpressionItem> projectAttrs = new ArrayList<>();
     List<String> renameAttrs = new ArrayList<String>();
+    List<Join> joins= new ArrayList<>();
 
 
     public ProjectionNode(PlainSelect plainSelect) {
@@ -32,12 +35,37 @@ public class ProjectionNode extends TreeNode implements SelectItemVisitor {
 
 //        Set TableNode as Child
         FromItem fromItem=plainSelect.getFromItem();
-        FromItemNode fromItemNode = new FromItemNode(fromItem);
+        FromItemNode fromItemNode = new FromItemNode(fromItem);//t1= fromItemNode
         if(leftChildNode==null){
                 this.setLeftChildNode(fromItemNode);
         }else{
             this.leftChildNode.setLeftChildNode(fromItemNode);
         }
+        List<Join> joins= plainSelect.getJoins();//t2,t3
+        JoinNode joinNode = new JoinNode(fromItem, joins);
+//        FromItemNode previous= null;
+//        for (Join join : joins) {
+//            FromItemNode joinItem = new FromItemNode(join.getRightItem());
+//            if(previous==null)
+//            {
+////                JoinNode joinNode = new JoinNode(fromItemNode,joinItem);
+//                previous=joinItem;
+//            }
+//            else
+//            {
+////                JoinNode joinNode = new JoinNode(previous,joinItem);
+//            }
+//
+//            if(rightChildNode== null)
+//            {
+//                this.setRightChildNode(joinItem);
+//            }
+//            else
+//            {
+//                this.rightChildNode.setLeftChildNode(joinItem);
+//            }
+//        }
+
     }
 
     /**
