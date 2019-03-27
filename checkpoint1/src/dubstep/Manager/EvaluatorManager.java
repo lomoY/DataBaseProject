@@ -260,6 +260,7 @@ public class EvaluatorManager extends Eval implements ExpressionVisitor {
     public PrimitiveValue eval(Column column) throws SQLException {
 //        这边是PLAYERS.WEIGHT
         PrimitiveValue columnValue=tp.getColumnValue(column.getColumnName());
+
         return columnValue;
     }
 
@@ -362,13 +363,20 @@ public class EvaluatorManager extends Eval implements ExpressionVisitor {
     // PS: Both WEIGHT>200 OR 200<WEIGHT will cast to WEIGHT>200, so, its safe to use leftExpression to get columnName
     @Override
     public void visit(GreaterThan greaterThan) {
-
         try{
             columnName=greaterThan.getLeftExpression().toString();
             this.column=this.tp.getRawColumn(columnName);
-            PrimitiveValue columValue= this.eval(this.column);
+            PrimitiveValue columValue=this.eval(this.column);
 
-            this.result=this.eval(new GreaterThan(columValue,greaterThan.getRightExpression()));// Boolean Result
+            String TypeName = this.tp.getColdefinition(columnName).getColDataType().getDataType();
+            DateValue DateTypeCol;
+            if(TypeName.equals("date") ){
+                DateTypeCol = new DateValue(columValue.toRawString().replace("'",""));
+                this.result = this.eval(new GreaterThan(DateTypeCol, greaterThan.getRightExpression()));// Boolean Result
+            }
+            else{
+                this.result = this.eval(new GreaterThan(columValue, greaterThan.getRightExpression()));// Boolean Result
+            }
 
         }catch (SQLException e){
             e.printStackTrace();
@@ -377,7 +385,24 @@ public class EvaluatorManager extends Eval implements ExpressionVisitor {
 
     @Override
     public void visit(GreaterThanEquals greaterThanEquals) {
+        try{
+            columnName=greaterThanEquals.getLeftExpression().toString();
+            this.column=this.tp.getRawColumn(columnName);
+            PrimitiveValue columValue= this.eval(this.column);
 
+            String TypeName = this.tp.getColdefinition(columnName).getColDataType().getDataType();
+            DateValue DateTypeCol;
+            if(TypeName.equals("date") ){
+                DateTypeCol = new DateValue(columValue.toRawString().replace("'",""));
+                this.result = this.eval(new GreaterThanEquals(DateTypeCol, greaterThanEquals.getRightExpression()));// Boolean Result
+            }
+            else{
+                this.result = this.eval(new GreaterThanEquals(columValue, greaterThanEquals.getRightExpression()));// Boolean Result
+            }
+
+        }catch (SQLException e){
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -397,17 +422,68 @@ public class EvaluatorManager extends Eval implements ExpressionVisitor {
 
     @Override
     public void visit(MinorThan minorThan) {
+        try{
+            columnName=minorThan.getLeftExpression().toString();
+            this.column=this.tp.getRawColumn(columnName);
+            PrimitiveValue columValue= this.eval(this.column);
 
+            String TypeName = this.tp.getColdefinition(columnName).getColDataType().getDataType();
+            DateValue DateTypeCol;
+            if(TypeName.equals("date") ){
+                DateTypeCol = new DateValue(columValue.toRawString().replace("'",""));
+                this.result = this.eval(new MinorThan(DateTypeCol, minorThan.getRightExpression()));// Boolean Result
+            }
+            else{
+                this.result = this.eval(new MinorThan(columValue, minorThan.getRightExpression()));// Boolean Result
+            }
+
+        }catch (SQLException e){
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void visit(MinorThanEquals minorThanEquals) {
+        try{
+            columnName=minorThanEquals.getLeftExpression().toString();
+            this.column=this.tp.getRawColumn(columnName);
+            PrimitiveValue columValue= this.eval(this.column);
 
+            String TypeName = this.tp.getColdefinition(columnName).getColDataType().getDataType();
+            DateValue DateTypeCol;
+            if(TypeName.equals("date") ){
+                DateTypeCol = new DateValue(columValue.toRawString().replace("'",""));
+                this.result = this.eval(new MinorThanEquals(DateTypeCol, minorThanEquals.getRightExpression()));// Boolean Result
+            }
+            else{
+                this.result = this.eval(new MinorThanEquals(columValue, minorThanEquals.getRightExpression()));// Boolean Result
+            }
+
+        }catch (SQLException e){
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void visit(NotEqualsTo notEqualsTo) {
+        try{
+            columnName=notEqualsTo.getLeftExpression().toString();
+            this.column=this.tp.getRawColumn(columnName);
+            PrimitiveValue columValue= this.eval(this.column);
 
+            String TypeName = this.tp.getColdefinition(columnName).getColDataType().getDataType();
+            DateValue DateTypeCol;
+            if(TypeName.equals("date") ){
+                DateTypeCol = new DateValue(columValue.toRawString().replace("'",""));
+                this.result = this.eval(new NotEqualsTo(DateTypeCol, notEqualsTo.getRightExpression()));// Boolean Result
+            }
+            else{
+                this.result = this.eval(new NotEqualsTo(columValue, notEqualsTo.getRightExpression()));// Boolean Result
+            }
+
+        }catch (SQLException e){
+            e.printStackTrace();
+        }
     }
 
     @Override
