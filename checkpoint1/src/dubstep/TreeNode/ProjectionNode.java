@@ -1,7 +1,9 @@
 package dubstep.TreeNode;
 
-import dubstep.Manager.TableManager;
+import dubstep.Aggregator.GroupByIterator;
 import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.Function;
+import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.*;
 import java.util.*;
@@ -12,10 +14,12 @@ import java.util.function.Consumer;
  */
 
 public class ProjectionNode extends TreeNode implements SelectItemVisitor {
+    boolean isGroupBy = false;
     String FromItemName;
     Table TableObj;
     List<SelectExpressionItem> projectAttrs = new ArrayList<>();
     List<String> renameAttrs = new ArrayList<String>();
+    List<Column> groupByColumns;
 
 
     public ProjectionNode(PlainSelect plainSelect) {
@@ -38,6 +42,14 @@ public class ProjectionNode extends TreeNode implements SelectItemVisitor {
         }else{
             this.leftChildNode.setLeftChildNode(fromItemNode);
         }
+
+//        GroupBy可以看做是project的一种
+        this.groupByColumns=plainSelect.getGroupByColumnReferences();
+//        GroupByIterator gbn = new GroupByIterator();
+//        List<Join> x =plainSelect.getJoins();
+//        Join s = new Join();
+//        x.get(0).getRightItem();
+//        System.out.println(x);
     }
 
     /**
@@ -63,12 +75,14 @@ public class ProjectionNode extends TreeNode implements SelectItemVisitor {
 
         @Override
         public Tuple next() {
-            Tuple tp = lfir.next();//FIRSTNAME AS A
-//            在update的时候，要把心的schema传进去，所以alies是要在这里获得的
-//            在这里要做两件事。1. 选取需要的column；2.更新column的名字
-//            问题，应该在哪里更新schema呢？是在next里呢，还是在Itr初始化的时候呢...
-            //最好是先通过更新schema，然后再来做
+            Tuple tp = lfir.next();
 
+            //这里要做groupbyproject
+//            if(true){
+//
+//            }
+
+            //这里是正常的project
             if(projectAttrs.size()!=0){//if not Players.*
                 tp.upDateColumn(projectAttrs);
             }
@@ -118,21 +132,29 @@ public class ProjectionNode extends TreeNode implements SelectItemVisitor {
 
 //    PLAYERS.FIRSTNAME
 //    COLUMNNAME = "FIRSTNAME",TABLE="PLAYERS"
-//
-
+//    COUNT(FIRSTNAME), if(name="COUNT"),parameters
+//    SELECT LASTSEASON-FIRSTSEASON AS YEARS FROM PLAYERS;
     @Override
     public void visit(SelectExpressionItem selectExpressionItem) {
 //        Schema schema = TableManager.getSchema();
         String alias=selectExpressionItem.getAlias();
         this.projectAttrs.add(selectExpressionItem);
 
-        if(alias!=null){
+
+//        determine if is groupby
+        if(selectExpressionItem.getExpression() instanceof Function){
+            this.isGroupBy =true;
         }
     }
 
     @Override
     public Iterator iterator() {
-        return new Itr();
+
+        if(this.isGroupBy==true){
+            return new GroupByIterator(this.projectAttrs,this.groupByColumns,leftChildNode.iterator());
+        }else {
+            return new Itr();
+        }
     }
 
     @Override
@@ -154,9 +176,11 @@ public class ProjectionNode extends TreeNode implements SelectItemVisitor {
 //              |-columnName:FIRSTNAME
 //              |-table:p1
 //    COLUMNNAME = "FIRSTNAME",TABLE="PLAYERS"
+
     private void setSelectAttr(List<SelectItem> selectItems){
         for(SelectItem selectitem:selectItems){
             selectitem.accept(this);
+
         }
     }
 }

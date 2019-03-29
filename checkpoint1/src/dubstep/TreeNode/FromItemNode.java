@@ -4,7 +4,6 @@ import dubstep.Manager.ProjectionTypeNode;
 import dubstep.Manager.TableManager;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.*;
-
 import java.util.Iterator;
 import java.util.Spliterator;
 import java.util.function.Consumer;
@@ -91,7 +90,7 @@ public class FromItemNode extends TreeNode implements FromItemVisitor {
 
     @Override
     public void visit(SubJoin subJoin) {
-
+        System.out.println(subJoin);
     }
 
     //SELECT FIRSTNAME, LASTNAME, WEIGHT, BIRTHDATE FROM (SELECT FIRSTNAME, LASTNAME,FIRSTSEASON, WEIGHT, BIRTHDATE FROM PLAYERS);

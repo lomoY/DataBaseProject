@@ -11,15 +11,11 @@ import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import java.util.*;
 import java.util.function.Consumer;
 
-/**
- * @author Lomo
- * todo 1.Optimize 'set columndefinition', 2. Iterator 3.
- */
-
-public class Count implements Iterable<Tuple>{
-
+public class CountBackUp implements Iterable<Tuple>{
     HashMap<String,Tuple> newTpList = new HashMap<>();
+
     List<String> groupbyName = new LinkedList<>();
+    LongValue amount = new LongValue(0);
     List<ColumnDefinition> coldefinitions = new ArrayList<>();
     List<Column> groupByAttrs;//GroupByAttrs:FIRSTSEASON,LASTSEASON
 
@@ -29,13 +25,15 @@ public class Count implements Iterable<Tuple>{
      *
      */
 
+//    ExpressionList expressionList;// FIRSTNAME
     List<Expression> expressionList;
 
-    public Count(ExpressionList expressionList, List<Column> groupByColumns) {
+    public CountBackUp(ExpressionList expressionList, List<Column> groupByColumns) {
 
         this.expressionList=expressionList.getExpressions();
         this.groupByAttrs=groupByColumns;
         ArrayList<PrimitiveValue> row= new ArrayList<>(groupByAttrs.size());
+
         ColumnDefinition count = new ColumnDefinition();
         count.setColumnName("COUNT");
         ColDataType countDataType = new ColDataType();
@@ -46,21 +44,33 @@ public class Count implements Iterable<Tuple>{
 
     public void accumulate(Tuple tp) {
 
-    /**
-     * expressionList 所要count的东西
-     * */
+        int isNewCount = groupByAttrs.size();
+        int existIndex=0;//这个可能要改
+        /**
+         * expressionList 所要count的东西
+         * */
         if(newTpList.size()==0){
-
+            Tuple newTp = new Tuple();
+            Column COUNT = new Column(null,"COUNT");
+            newTp.setColumn(COUNT,new LongValue(1));
+            String key="";
             for(Expression expression:groupByAttrs){
                 String attName = expression.toString();
+                PrimitiveValue value=tp.getColumnValue(attName);
+                key=key+value.toRawString();
+                Column col = tp.getRawColumn(attName);
+                newTp.setColumn(col,value);
                 ColumnDefinition definition = tp.getColdefinition(attName);
                 this.coldefinitions.add(definition);
             }
 
-        }
+            newTp.setColdefinition(this.coldefinitions);
+            newTpList.put(key,newTp);
+        }else{
 
-        String key="";
+            String key="";
 
+            int isMatch = groupByAttrs.size();
             for(Expression expression:groupByAttrs) {
                 String attName = expression.toString();
                 PrimitiveValue value = tp.getColumnValue(attName);
@@ -68,29 +78,27 @@ public class Count implements Iterable<Tuple>{
             }
 
 
-        if(!newTpList.containsKey(key)){//表示不存在
+            if(!newTpList.containsKey(key)){//表示不存在
+                Tuple newTp = new Tuple();
+                Column COUNT = new Column(null,"COUNT");
+                newTp.setColumn(COUNT,new LongValue(1));
 
-            Tuple newTp = new Tuple();
-            Column COUNT = new Column(null,"COUNT");
-            newTp.setColumn(COUNT,new LongValue(1));
-            for(Expression expression:groupByAttrs){
-                String attName = expression.toString();
-                PrimitiveValue value=tp.getColumnValue(attName);
-                Column col = tp.getRawColumn(attName);
-                newTp.setColumn(col,value);
-                ColumnDefinition definition = tp.getColdefinition(attName);
+                for(Expression expression:groupByAttrs){
+                    String attName = expression.toString();
+                    PrimitiveValue value=tp.getColumnValue(attName);
+                    Column col = tp.getRawColumn(attName);
+                    newTp.setColumn(col,value);
+                }
+                newTp.setColdefinition(this.coldefinitions);
+                newTpList.put(key,newTp);
+            }else {
+                Tuple existTp=newTpList.get(key);
+                LongValue oldValue = (LongValue) existTp.getColumnValue("COUNT");
+                LongValue newValue = new LongValue(oldValue.getValue()+1);
+                existTp.setColumnValue("COUNT",newValue);
             }
-            newTp.setColdefinition(this.coldefinitions);
-            newTpList.put(key,newTp);
-
-        }else {
-
-            Tuple existTp=newTpList.get(key);
-            LongValue oldValue = (LongValue) existTp.getColumnValue("COUNT");
-            LongValue newValue = new LongValue(oldValue.getValue()+1);
-            existTp.setColumnValue("COUNT",newValue);
-
         }
+
     }
 
 

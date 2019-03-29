@@ -368,6 +368,10 @@ public class EvaluatorManager extends Eval implements ExpressionVisitor {
             this.column=this.tp.getRawColumn(columnName);
             PrimitiveValue columValue= this.eval(this.column);
 
+//            if(columValue instanceof DateValue){
+//                columValue=(DateValue)columValue;
+//            }
+
             this.result=this.eval(new GreaterThan(columValue,greaterThan.getRightExpression()));// Boolean Result
 
         }catch (SQLException e){

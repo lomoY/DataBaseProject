@@ -54,9 +54,24 @@ public class Tuple {
         return targetColumn;
     }
 
+    public void setColumnValue(String columnName,PrimitiveValue value) {
+
+        columnValues.put(columnName,value);
+    }
+
+    public void setColumn(Column column, PrimitiveValue columnValue) {
+        this.rawColumns.put(column.getColumnName(),column);
+        this.columnValues.put(column.getColumnName(),columnValue);
+    }
+
+    public void setColdefinition(List<ColumnDefinition> _coldefinitions){
+        this.coldefinitions=_coldefinitions;
+    }
+
     /**
      * Update Schema。 是在tuple里update呢，还是在TableNode里update
      * @param selectItems
+     * arg List<SelectExpressionItem>
      */
 
     public void upDateColumn(List<SelectExpressionItem> selectItems){
@@ -109,11 +124,6 @@ public class Tuple {
         this.rawColumns=tempColmns;
         this.columnValues=tempColumnValues;
         this.coldefinitions=tempColdefinitions;
-    }
-
-    public void setColumn(Column column, PrimitiveValue columnValue) {
-        this.rawColumns.put(column.getColumnName(),column);
-        this.columnValues.put(column.getColumnName(),columnValue);
     }
 
     public void rename(List<String> rename){
