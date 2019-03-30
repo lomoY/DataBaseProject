@@ -9,6 +9,7 @@ import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.expression.operators.relational.*;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.PrimitiveType;
+import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 import net.sf.jsqlparser.statement.select.SubSelect;
 
 import java.sql.SQLException;
@@ -26,8 +27,11 @@ public class EvaluatorManager extends Eval implements ExpressionVisitor {
 
     public EvaluatorManager(Expression whereExpression) {
         this.whereExpression = whereExpression;
+//        whereExpression.accept(this);
     }
-
+    public EvaluatorManager(SelectExpressionItem selectExpressionItem){
+//        selectExpressionItem.accept(this);
+    }
     public PrimitiveValue evaluateAttr(Tuple tuple){
         this.tp=tuple;
         whereExpression.accept(this);
@@ -320,7 +324,7 @@ public class EvaluatorManager extends Eval implements ExpressionVisitor {
 
     @Override
     public void visit(Addition addition) {
-
+//        会跳到这边
     }
 
     @Override

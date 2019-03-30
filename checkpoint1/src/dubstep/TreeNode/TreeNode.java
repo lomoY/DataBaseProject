@@ -3,7 +3,8 @@ package dubstep.TreeNode;
 public abstract class TreeNode implements Iterable<Tuple>{
     TreeNode leftChildNode;
     TreeNode rightChildNode;
-
+    Schema lftSchema;
+    Schema rightSchema;
 
     public TreeNode getLeftChildNode() {
         return leftChildNode;
@@ -20,5 +21,9 @@ public abstract class TreeNode implements Iterable<Tuple>{
 
     public void setRightChildNode(TreeNode rightChildNode) {
         this.rightChildNode = rightChildNode;
+    }
+
+    public Schema getSchema(){
+        return this.lftSchema;
     }
 }

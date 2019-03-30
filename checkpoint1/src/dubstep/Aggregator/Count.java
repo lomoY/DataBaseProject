@@ -22,6 +22,7 @@ public class Count implements Iterable<Tuple>{
     List<String> groupbyName = new LinkedList<>();
     List<ColumnDefinition> coldefinitions = new ArrayList<>();
     List<Column> groupByAttrs;//GroupByAttrs:FIRSTSEASON,LASTSEASON
+    String counterName;
 
     /**
      * count,int
@@ -31,13 +32,20 @@ public class Count implements Iterable<Tuple>{
 
     List<Expression> expressionList;
 
-    public Count(ExpressionList expressionList, List<Column> groupByColumns) {
+    public Count(String newName,ExpressionList expressionList, List<Column> groupByColumns) {
 
         this.expressionList=expressionList.getExpressions();
         this.groupByAttrs=groupByColumns;
         ArrayList<PrimitiveValue> row= new ArrayList<>(groupByAttrs.size());
         ColumnDefinition count = new ColumnDefinition();
-        count.setColumnName("COUNT");
+
+
+        if(newName!=null){
+            counterName=newName;
+        }else {
+            counterName="COUNT";
+        }
+        count.setColumnName(counterName);
         ColDataType countDataType = new ColDataType();
         countDataType.setDataType("int");
         count.setColDataType(countDataType);
@@ -52,8 +60,13 @@ public class Count implements Iterable<Tuple>{
         if(newTpList.size()==0){
 
             for(Expression expression:groupByAttrs){
-                String attName = expression.toString();
-                ColumnDefinition definition = tp.getColdefinition(attName);
+                //so far, all expression here is instance of Column
+
+                    String columnName = ((Column) expression).getColumnName();
+                    String tablename =((Column) expression).getTable().getName();
+
+
+                ColumnDefinition definition = tp.getColdefinition(columnName);
                 this.coldefinitions.add(definition);
             }
 
@@ -61,34 +74,37 @@ public class Count implements Iterable<Tuple>{
 
         String key="";
 
-            for(Expression expression:groupByAttrs) {
-                String attName = expression.toString();
-                PrimitiveValue value = tp.getColumnValue(attName);
-                key = key + value.toRawString();
-            }
+        for(Expression expression:groupByAttrs) {
 
+            String columnName = ((Column) expression).getColumnName();
+            String tablename =((Column) expression).getTable().getName();
+            PrimitiveValue value = tp.getColumnValue(columnName);
+            key = key + value.toRawString();
+        }
 
         if(!newTpList.containsKey(key)){//表示不存在
 
             Tuple newTp = new Tuple();
-            Column COUNT = new Column(null,"COUNT");
+            Column COUNT = new Column(null,counterName);
             newTp.setColumn(COUNT,new LongValue(1));
             for(Expression expression:groupByAttrs){
-                String attName = expression.toString();
-                PrimitiveValue value=tp.getColumnValue(attName);
-                Column col = tp.getRawColumn(attName);
+                String columnName = ((Column) expression).getColumnName();
+                String tablename =((Column) expression).getTable().getName();
+                PrimitiveValue value=tp.getColumnValue(columnName);
+                Column col = tp.getRawColumn(columnName);
                 newTp.setColumn(col,value);
-                ColumnDefinition definition = tp.getColdefinition(attName);
+                ColumnDefinition definition = tp.getColdefinition(columnName);
             }
+
             newTp.setColdefinition(this.coldefinitions);
             newTpList.put(key,newTp);
 
         }else {
 
             Tuple existTp=newTpList.get(key);
-            LongValue oldValue = (LongValue) existTp.getColumnValue("COUNT");
+            LongValue oldValue = (LongValue) existTp.getColumnValue(counterName);
             LongValue newValue = new LongValue(oldValue.getValue()+1);
-            existTp.setColumnValue("COUNT",newValue);
+            existTp.setColumnValue(counterName,newValue);
 
         }
     }

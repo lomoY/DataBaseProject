@@ -1,6 +1,7 @@
 package dubstep.TreeNode;
 
 import dubstep.Aggregator.GroupByIterator;
+import dubstep.Manager.EvaluatorManager;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.schema.Column;
@@ -20,7 +21,7 @@ public class ProjectionNode extends TreeNode implements SelectItemVisitor {
     List<SelectExpressionItem> projectAttrs = new ArrayList<>();
     List<String> renameAttrs = new ArrayList<String>();
     List<Column> groupByColumns;
-
+    Schema schema;
 
     public ProjectionNode(PlainSelect plainSelect) {
 
@@ -139,8 +140,7 @@ public class ProjectionNode extends TreeNode implements SelectItemVisitor {
 //        Schema schema = TableManager.getSchema();
         String alias=selectExpressionItem.getAlias();
         this.projectAttrs.add(selectExpressionItem);
-
-
+//        EvaluatorManager ev = new EvaluatorManager(selectExpressionItem.getExpression());
 //        determine if is groupby
         if(selectExpressionItem.getExpression() instanceof Function){
             this.isGroupBy =true;
@@ -182,5 +182,13 @@ public class ProjectionNode extends TreeNode implements SelectItemVisitor {
             selectitem.accept(this);
 
         }
+    }
+
+    public Schema getSchema(){
+        return this.leftChildNode.getSchema();
+    }
+
+    public void upDateSchema(){
+
     }
 }

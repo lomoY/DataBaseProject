@@ -39,15 +39,17 @@ public class GroupByIterator implements Iterator<Tuple> {
 //        groupby的东西
         groupByAttrs = projectAttrs;
 
-//
         for(SelectExpressionItem item:projectAttrs){
+
             if(item.getExpression() instanceof Function){
+
                 this.aggrFn=(Function) item.getExpression();
                 String aggrfnName = this.aggrFn.getName();//gBfn
-                this.expressionList=this.aggrFn.getParameters();//firstname
+                String alias = item.getAlias();
 
+                this.expressionList=this.aggrFn.getParameters();//firstname
                 if(aggrfnName.equals("COUNT")){
-                    count= new Count(this.expressionList,groupByColumns);
+                    count= new Count(alias,this.expressionList,groupByColumns);
                 }
             }
         }
