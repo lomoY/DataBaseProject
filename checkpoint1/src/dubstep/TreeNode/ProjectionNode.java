@@ -22,6 +22,7 @@ public class ProjectionNode extends TreeNode implements SelectItemVisitor {
     List<String> renameAttrs = new ArrayList<String>();
     List<Column> groupByColumns;
     Schema schema;
+    EvaluatorManager projectEm;
 
     public ProjectionNode(PlainSelect plainSelect) {
 
@@ -63,9 +64,12 @@ public class ProjectionNode extends TreeNode implements SelectItemVisitor {
         Iterator<Tuple> lfir;
         List<SelectExpressionItem> projectAttrs;
 
+
         public Itr() {
+
             lfir = ProjectionNode.this.leftChildNode.iterator();
             projectAttrs = ProjectionNode.this.projectAttrs;
+            projectEm = new EvaluatorManager(projectAttrs);
         }
 
         /**
@@ -82,10 +86,11 @@ public class ProjectionNode extends TreeNode implements SelectItemVisitor {
 //            if(true){
 //
 //            }
+            tp=projectEm.evaluateProjection(tp);
 
             //这里是正常的project
             if(projectAttrs.size()!=0){//if not Players.*
-                tp.upDateColumn(projectAttrs);
+//                tp.upDateColumn(projectAttrs);
             }
             return tp;
         }
@@ -137,7 +142,8 @@ public class ProjectionNode extends TreeNode implements SelectItemVisitor {
 //    SELECT LASTSEASON-FIRSTSEASON AS YEARS FROM PLAYERS;
     @Override
     public void visit(SelectExpressionItem selectExpressionItem) {
-//        Schema schema = TableManager.getSchema();
+
+
         String alias=selectExpressionItem.getAlias();
         this.projectAttrs.add(selectExpressionItem);
 //        EvaluatorManager ev = new EvaluatorManager(selectExpressionItem.getExpression());

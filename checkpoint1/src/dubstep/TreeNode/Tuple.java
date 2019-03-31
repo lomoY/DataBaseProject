@@ -7,6 +7,8 @@ import net.sf.jsqlparser.expression.StringValue;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
+import org.relaxng.datatype.Datatype;
+
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -65,6 +67,13 @@ public class Tuple {
     }
 
     public void setColdefinition(List<ColumnDefinition> _coldefinitions){
+        this.coldefinitions=_coldefinitions;
+    }
+
+
+    public void setAll(Map<String,Column> _rawColumns,Map<String,PrimitiveValue> _columnValues,List<ColumnDefinition> _coldefinitions){
+        this.rawColumns=_rawColumns;
+        this.columnValues=_columnValues;
         this.coldefinitions=_coldefinitions;
     }
 

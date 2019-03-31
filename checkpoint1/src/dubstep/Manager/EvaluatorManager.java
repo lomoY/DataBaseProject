@@ -9,10 +9,12 @@ import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.expression.operators.relational.*;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.PrimitiveType;
+import net.sf.jsqlparser.statement.create.table.ColDataType;
+import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 import net.sf.jsqlparser.statement.select.SubSelect;
-
 import java.sql.SQLException;
+import java.util.*;
 
 /**
  * @author Lomo
@@ -20,48 +22,113 @@ import java.sql.SQLException;
 
 public class EvaluatorManager extends Eval implements ExpressionVisitor {
     Tuple tp;
+    List<SelectExpressionItem> selectExpressionItems = new LinkedList<>();
     Expression whereExpression;
     PrimitiveValue result;
     String columnName;//not used actually
     Column column;
 
+    HashMap<Expression,String> newNames = new HashMap<>();
+    Map<String,Column> rawColumns = new HashMap<>();//for new column
+    Map<String,PrimitiveValue> columnValues = new HashMap<>();//for new column
+    List<ColumnDefinition> coldefinitions = new ArrayList<>();//for new column
+
     public EvaluatorManager(Expression whereExpression) {
         this.whereExpression = whereExpression;
 //        whereExpression.accept(this);
     }
-    public EvaluatorManager(SelectExpressionItem selectExpressionItem){
-//        selectExpressionItem.accept(this);
+
+    public EvaluatorManager(List<SelectExpressionItem> seis){
+
+        this.selectExpressionItems=seis;
+        for(SelectExpressionItem sei:seis){
+            this.newNames.put(sei.getExpression(),sei.getAlias());
+
+        }
     }
+
+    public  Tuple evaluateProjection(Tuple tuple){
+
+        this.tp=tuple;
+        boolean notContain=true;
+
+        for(SelectExpressionItem sei:selectExpressionItems){
+            sei.getExpression().accept(this);
+
+            if(sei.getExpression() instanceof Addition||sei.getExpression() instanceof Multiplication){
+
+                String newName = newNames.get(sei.getExpression());
+                Column col = new Column();
+                col.setColumnName(newName);
+                ColumnDefinition coldef = new ColumnDefinition();
+                ColDataType colDataType = new ColDataType();
+                colDataType.setDataType("int");
+                coldef.setColumnName(newName);
+                coldef.setColDataType(colDataType);
+
+                rawColumns.put(newName,col);
+                columnValues.put(newName,result);
+
+                for(ColumnDefinition def: this.coldefinitions){
+                    if(def.getColumnName()==newName){
+                        notContain=false;
+                    }
+                }
+
+                if(notContain){
+                    coldefinitions.add(coldef);
+                }
+
+            }
+
+        }
+
+        tp.setAll(rawColumns,columnValues,coldefinitions);
+        return this.tp;
+    }
+
     public PrimitiveValue evaluateAttr(Tuple tuple){
+
         this.tp=tuple;
         whereExpression.accept(this);
         return this.result;
+
     }
 
 
     @Override
     public PrimitiveValue eval(GreaterThan a) throws SQLException {
+
         return super.eval(a);
+
     }
 
     @Override
     public PrimitiveType assertNumeric(PrimitiveType found) throws SQLException {
+
         return super.assertNumeric(found);
+
     }
 
     @Override
     public PrimitiveType escalateNumeric(PrimitiveType lhs, PrimitiveType rhs) throws SQLException {
+
         return super.escalateNumeric(lhs, rhs);
+
     }
 
     @Override
     public PrimitiveValue missing(String element) throws SQLException {
+
         return super.missing(element);
+
     }
 
     @Override
     public PrimitiveValue eval(Expression e) throws SQLException {
+
         return super.eval(e);
+
     }
 
     @Override
@@ -260,6 +327,7 @@ public class EvaluatorManager extends Eval implements ExpressionVisitor {
     }
 
     //Return the PrimitiveValue of column
+
     @Override
     public PrimitiveValue eval(Column column) throws SQLException {
 //        这边是PLAYERS.WEIGHT
@@ -324,7 +392,38 @@ public class EvaluatorManager extends Eval implements ExpressionVisitor {
 
     @Override
     public void visit(Addition addition) {
-//        会跳到这边
+
+        PrimitiveValue rightValue;
+
+        if((addition.getLeftExpression() instanceof Addition)== true){
+
+            addition.getLeftExpression().accept(this);
+
+        }else if(addition.getLeftExpression() instanceof Column){
+
+            String columnName = ((Column) addition.getLeftExpression()).getColumnName();
+            this.result = this.tp.getColumnValue(columnName);
+
+        }else{
+            this.result = (PrimitiveValue) addition.getLeftExpression();
+        }
+
+        if(addition.getRightExpression() instanceof Column){
+
+            String columnName = ((Column) addition.getRightExpression()).getColumnName();
+            rightValue = this.tp.getColumnValue(columnName);
+
+        }else {
+            rightValue=(PrimitiveValue) addition.getRightExpression();
+        }
+
+        try {
+
+            this.result = this.eval(new Addition(this.result, rightValue));// Boolean Result
+
+        }catch (SQLException e){
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -334,8 +433,39 @@ public class EvaluatorManager extends Eval implements ExpressionVisitor {
 
     @Override
     public void visit(Multiplication multiplication) {
+        PrimitiveValue rightValue;
 
+        if((multiplication.getLeftExpression() instanceof Multiplication)== true){
+
+            multiplication.getLeftExpression().accept(this);
+
+        }else if(multiplication.getLeftExpression() instanceof Column){
+
+            String columnName = ((Column) multiplication.getLeftExpression()).getColumnName();
+            this.result = this.tp.getColumnValue(columnName);
+
+        }else{
+            this.result = (PrimitiveValue) multiplication.getLeftExpression();
+        }
+
+        if(multiplication.getRightExpression() instanceof Column){
+
+            String columnName = ((Column) multiplication.getRightExpression()).getColumnName();
+            rightValue = this.tp.getColumnValue(columnName);
+
+        }else {
+            rightValue=(PrimitiveValue) multiplication.getRightExpression();
+        }
+
+        try {
+
+            this.result = this.eval(new Multiplication(this.result, rightValue));// Boolean Result
+
+        }catch (SQLException e){
+            e.printStackTrace();
+        }
     }
+
 
     @Override
     public void visit(Subtraction subtraction) {
@@ -420,6 +550,17 @@ public class EvaluatorManager extends Eval implements ExpressionVisitor {
 
     @Override
     public void visit(Column column) {
+
+        String colName = column.getColumnName();
+        PrimitiveValue colValue = this.tp.getColumnValue(colName);
+        ColumnDefinition columnDefinition = this.tp.getColdefinition(colName);
+        Column col=this.tp.getRawColumn(colName);
+        this.rawColumns.put(colName,col);
+        this.columnValues.put(colName,colValue);
+        if(this.coldefinitions.contains(columnDefinition)==false){
+
+            this.coldefinitions.add(columnDefinition);
+        }
 
     }
 
