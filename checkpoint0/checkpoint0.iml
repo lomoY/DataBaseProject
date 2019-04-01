@@ -7,14 +7,11 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/jsqlparser-1.0.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
+    <orderEntry type="library" name="checkpoint1_1" level="project" />
+    <orderEntry type="library" name="src" level="project" />
+    <orderEntry type="library" name="jsqlparser-1.0.0" level="project" />
+    <orderEntry type="library" name="jsqlparser-1.0.02" level="project" />
+    <orderEntry type="library" name="checkpoint0" level="project" />
+    <orderEntry type="library" name="jsqlparser-1.0.01" level="project" />
   </component>
 </module>

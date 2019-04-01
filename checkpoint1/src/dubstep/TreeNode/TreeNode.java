@@ -10,6 +10,7 @@ public abstract class TreeNode implements Iterable<Tuple>{
     }
 
     public TreeNode getRightChildNode() {
+
         return rightChildNode;
     }
 

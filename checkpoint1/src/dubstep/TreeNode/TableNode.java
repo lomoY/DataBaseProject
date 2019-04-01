@@ -39,7 +39,7 @@ public class TableNode extends TreeNode implements IntoTableVisitor {
 
         this.TableName=createTable.getTable().getName();
         this.TableObj=createTable.getTable();
-        this.TableFile = Paths.get("/Users/Lomo/Desktop/Courses/DataBaseSystem/SourceCode/checkpoint1_1/test/NBA_Examples/PLAYERS.csv").toFile();
+        this.TableFile = Paths.get("G:\\UB\\Spring'19\\DB\\cse562-master\\DataBaseProject_1\\checkpoint1\\test\\NBA_Examples\\PLAYERS.csv").toFile();
 
     }
 
