@@ -33,39 +33,32 @@ public class ProjectionNode extends TreeNode implements SelectItemVisitor {
             this.setLeftChildNode(selectionNode);
         }
 
-//        Set TableNode as Child
         FromItem fromItem=plainSelect.getFromItem();
-        FromItemNode fromItemNode = new FromItemNode(fromItem);//t1= fromItemNode
-        if(leftChildNode==null){
-                this.setLeftChildNode(fromItemNode);
-        }else{
-            this.leftChildNode.setLeftChildNode(fromItemNode);
+        FromItemNode fromItemNode = new FromItemNode(fromItem);
+        List<Join> joins= plainSelect.getJoins();
+        if(joins!= null)
+        {
+            JoinNode joinNode = new JoinNode(fromItemNode, joins);
+            if(leftChildNode== null)
+            {
+                this.setLeftChildNode(joinNode);
+            }
+            else
+            {
+                this.leftChildNode.setLeftChildNode(joinNode);
+            }
         }
-        List<Join> joins= plainSelect.getJoins();//t2,t3
-        JoinNode joinNode = new JoinNode(fromItem, joins);
-//        FromItemNode previous= null;
-//        for (Join join : joins) {
-//            FromItemNode joinItem = new FromItemNode(join.getRightItem());
-//            if(previous==null)
-//            {
-////                JoinNode joinNode = new JoinNode(fromItemNode,joinItem);
-//                previous=joinItem;
-//            }
-//            else
-//            {
-////                JoinNode joinNode = new JoinNode(previous,joinItem);
-//            }
-//
-//            if(rightChildNode== null)
-//            {
-//                this.setRightChildNode(joinItem);
-//            }
-//            else
-//            {
-//                this.rightChildNode.setLeftChildNode(joinItem);
-//            }
-//        }
+      else
+        {
+//            Set TableNode as Child
 
+            if(leftChildNode==null){
+                this.setLeftChildNode(fromItemNode);
+            }else{
+                this.leftChildNode.setLeftChildNode(fromItemNode);
+            }
+
+        }
     }
 
     /**

@@ -6,6 +6,7 @@ import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.*;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 
@@ -25,6 +26,11 @@ public class FromItemNode extends TreeNode implements FromItemVisitor {
         //ALIES = P1
         String alies = fromItem.getAlias();
     }
+//    public FromItemNode(List<Join> joins){
+//        SubJoin sub= joins.get(0).getRightItem();
+//        sub.accept(this);
+////        joins.get(0).getRightItem().accept(this);
+//    }
 
     private class Itr implements Iterator<Tuple>{
         Iterator<Tuple> lfItr;
@@ -91,7 +97,8 @@ public class FromItemNode extends TreeNode implements FromItemVisitor {
 
     @Override
     public void visit(SubJoin subJoin) {
-
+        System.out.println(subJoin);
+//        subJoin.getJoin();
     }
 
     //SELECT FIRSTNAME, LASTNAME, WEIGHT, BIRTHDATE FROM (SELECT FIRSTNAME, LASTNAME,FIRSTSEASON, WEIGHT, BIRTHDATE FROM PLAYERS);

@@ -11,41 +11,34 @@ import java.util.function.Consumer;
 public class JoinNode extends TreeNode {
 //设置左边的node，右边的node，然后用naive的方法
 
-    public JoinNode(FromItem fromItem, List<Join> joins) {
+    public JoinNode(FromItemNode fromItemNode, List<Join> joins) {
 //         left
-        this.setLeftChildNode(new FromItemNode(fromItem));
-        /**
-         * a b c d e
-         *
-         * a b c d e
-         *
-         * a, b c d e
-         * b, c d e
-         * c, d e
-         * d, e
-         * de
-         * cde
-         * bcde
-         * abcde
-         *
-         *
-         *
-         */
-//        right
+//        this.setLeftChildNode(new FromItemNode(fromItem));
+//          right
         FromItem Fi = joins.get(0).getRightItem();
+        FromItemNode Fin= new FromItemNode(Fi);
         joins.remove(0);
-        JoinNode jd = new JoinNode(Fi, joins);
-        this.setRightChildNode(jd);
+        if(joins.size()>0){
+            JoinNode jd = new JoinNode(Fin, joins);
+            this.setRightChildNode(jd);
+        }
+        else
+        {
+            this.setRightChildNode(Fin);
+        }
+        this.setLeftChildNode(fromItemNode);
     }
 
 
     private class Itr implements Iterator<Tuple> {
         Iterator<Tuple> lfItr;
         Iterator<Tuple> rgItr;
+        Tuple lftuple;
 
         public Itr() {
             lfItr = JoinNode.this.leftChildNode.iterator();
             rgItr = JoinNode.this.rightChildNode.iterator();
+            lftuple= lfItr.next();
         }
 
         @Override
@@ -60,7 +53,7 @@ public class JoinNode extends TreeNode {
 
         @Override
         public boolean hasNext() {
-            if (lfItr.hasNext()) {
+            if (rgItr.hasNext()) {
                 return true;
             } else {
 
@@ -70,25 +63,27 @@ public class JoinNode extends TreeNode {
 
         @Override
         public Tuple next() {
-//            Tuple leftTp;
+            Tuple leftTp;
             Tuple rightTp;
             Tuple returnTp = new Tuple();
-            Tuple leftTp = lfItr.next();
-
-
-            while (rgItr.hasNext()) {
-//                leftTp = this.lfItr.next();
-                rightTp = this.rgItr.next();
-
-                returnTp.rawColumns.putAll(leftTp.rawColumns);
-                returnTp.rawColumns.putAll(rightTp.rawColumns);
-                returnTp.columnValues.putAll(leftTp.columnValues);
-                returnTp.columnValues.putAll(rightTp.columnValues);
-                returnTp.coldefinitions.addAll(leftTp.coldefinitions);
-                returnTp.coldefinitions.addAll(rightTp.coldefinitions);
-                return returnTp;
+            
+            if (rgItr.hasNext()) {
+               leftTp = this.lftuple;
+               rightTp= rgItr.next();
             }
-
+            else
+            {
+                this.lftuple= lfItr.next();
+                leftTp = this.lftuple;
+                rgItr = JoinNode.this.rightChildNode.iterator();
+                rightTp= rgItr.next();
+            }
+            returnTp.rawColumns.putAll(leftTp.rawColumns);
+            returnTp.rawColumns.putAll(rightTp.rawColumns);
+            returnTp.columnValues.putAll(leftTp.columnValues);
+            returnTp.columnValues.putAll(rightTp.columnValues);
+            returnTp.coldefinitions.addAll(leftTp.coldefinitions);
+            returnTp.coldefinitions.addAll(rightTp.coldefinitions); 
             return returnTp;
         }
     }
@@ -111,6 +106,6 @@ public class JoinNode extends TreeNode {
 
         @Override
         public Iterator<Tuple> iterator() {
-            return null;
+            return new Itr();
         }
     }
