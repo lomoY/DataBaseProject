@@ -17,7 +17,7 @@
 - [ ] File Path configuration **@Yizhan Wu**
 - [ ] EvaluatorManager **@Yizhan Wu**
 - [ ] JoinNode **@Nhrkr**
-- [ ] Count **@LomoY**
-- [ ] Sum **@LomoY**
-- [ ] LimitNode **@LomoY**
-- [ ] SortNode **@LomoY**
+- [x] Count **@LomoY**
+- [x] Sum **@LomoY**
+- [x] LimitNode **@LomoY**
+- [x] SortNode **@LomoY**
