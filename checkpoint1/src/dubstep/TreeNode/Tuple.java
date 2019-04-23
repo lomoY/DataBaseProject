@@ -1,60 +1,70 @@
 package dubstep.TreeNode;
 
-import net.sf.jsqlparser.expression.DoubleValue;
-import net.sf.jsqlparser.expression.LongValue;
-import net.sf.jsqlparser.expression.PrimitiveValue;
-import net.sf.jsqlparser.expression.StringValue;
+import net.sf.jsqlparser.expression.*;
 import net.sf.jsqlparser.schema.Column;
+import net.sf.jsqlparser.schema.Table;
+import net.sf.jsqlparser.statement.create.table.ColDataType;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
-import org.relaxng.datatype.Datatype;
-
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * @author Lomo
- * Tuple的初始化是在TableNode里面完成的
- * 我们需要Return出去的tuple
+ * Initialize Tuple in TableNode, and return it to the parent node
  */
 
-public class Tuple {
-    Map<String,Column> rawColumns = new HashMap<>();//用来存储原本模式的column
-    Map<String,PrimitiveValue> columnValues = new HashMap<>();//only for print out
-    List<ColumnDefinition> coldefinitions = new ArrayList<>();
+public class Tuple implements Serializable {
+
+    public Map<String,PrimitiveValue> columnValues = new HashMap<>();//only for print out
+    List<Column> columnList = new ArrayList<>();
 
     public Tuple(){
 
     }
 
     public Tuple(List<ColumnDefinition> columnDefinitions){
-        for(ColumnDefinition columnDefinition:columnDefinitions){
-            coldefinitions.add(columnDefinition);
-        }
+//        for(ColumnDefinition columnDefinition:columnDefinitions){
+//            coldefinitions.add(columnDefinition);
+//        }
 
     }
 
-    public Column getRawColumn(String columnName){
-        return rawColumns.get(columnName);
-    }
+    public PrimitiveValue getColumnValue(String _colName) {
 
+        String key="";
 
-    public PrimitiveValue getColumnValue(String columnName) {
-        return columnValues.get(columnName);
-    }
+        for(Column column:this.columnList){
 
+            if(_colName.contains(".")){
+                if(_colName.equals(column.getWholeColumnName())){
+                    key = _colName;
+                }
+            }else{
 
-    public ColumnDefinition getColdefinition(String columnName) {
-            ColumnDefinition targetColumn = new ColumnDefinition();
-            for(ColumnDefinition columnDefinition:this.coldefinitions){
-                if(columnDefinition.getColumnName().equals(columnName)){
-                    targetColumn=columnDefinition;
-                    break;
+                String colName =column.getWholeColumnName();
+
+                Pattern regex = Pattern.compile("\\.(\\S+)");
+                Matcher match = regex.matcher(colName);
+                if (match.find()){
+                    colName = match.group(1);
+                }
+                if(_colName.equals(colName)){
+                    key=column.getWholeColumnName();
                 }
             }
-        return targetColumn;
+
+        }
+
+        return columnValues.get(key);
     }
+
+
 
     public void setColumnValue(String columnName,PrimitiveValue value) {
 
@@ -62,80 +72,200 @@ public class Tuple {
     }
 
     public void setColumn(Column column, PrimitiveValue columnValue) {
-        this.rawColumns.put(column.getColumnName(),column);
-        this.columnValues.put(column.getColumnName(),columnValue);
+
+        this.columnValues.put(column.getWholeColumnName(),columnValue);
+        this.columnList.add(column);
     }
 
-    public void setColdefinition(List<ColumnDefinition> _coldefinitions){
-        this.coldefinitions=_coldefinitions;
-    }
+    public void setAll(Map<String,String> alias, Map<String,PrimitiveValue> _columnValues, List<ColumnDefinition> _coldefinitions, List<Column> _columnList){
+
+        Map<String,PrimitiveValue> tempValList = new HashMap<>();
+
+        Iterator _valItr = _columnValues.entrySet().iterator();
 
 
-    public void setAll(Map<String,Column> _rawColumns,Map<String,PrimitiveValue> _columnValues,List<ColumnDefinition> _coldefinitions){
-        this.rawColumns=_rawColumns;
-        this.columnValues=_columnValues;
-        this.coldefinitions=_coldefinitions;
-    }
+        while(_valItr.hasNext()){
 
-    /**
-     * Update Schema。 是在tuple里update呢，还是在TableNode里update
-     * @param selectItems
-     * arg List<SelectExpressionItem>
-     */
+            Map.Entry _pair =(Map.Entry)_valItr.next();
+            String _key = (String) _pair.getKey();
+            String _keyAlias = alias.get(_key);
+            boolean isFullName = false;
+            boolean isMatch = false;
+            if(_key.contains(".")){
+                isFullName=true;
+            }
 
-    public void upDateColumn(List<SelectExpressionItem> selectItems){
+            Iterator valItr = columnValues.entrySet().iterator();
 
-        Map<String,Column> tempColmns = new HashMap<>();
-        Map<String,PrimitiveValue> tempColumnValues = new HashMap<>();
-        List tempColdefinitions = new ArrayList();
-        String attName;
-        String newName;
-        for(SelectExpressionItem selectItem:selectItems){
+            while(valItr.hasNext()){
 
+                Map.Entry pair = (Map.Entry) valItr.next();
+                String key =(String) pair.getKey();
 
-            if(selectItem.getAlias()==null){
-                attName = selectItem.getExpression().toString();//p1.firstname 无法实现getcolumnname
+                if(isFullName){//which means: ID not Players.ID
 
-                Pattern regex = Pattern.compile("\\.(\\S+)");
-                Matcher match = regex.matcher(selectItem.getExpression().toString());
-                if (match.find()){
-                    attName = match.group(1);
-                }
+                    if(_key.equals(key)){
 
-                tempColmns.put(attName,this.rawColumns.get(attName));
-                tempColumnValues.put(attName,this.columnValues.get(attName));//这一步把value也一起更新了
-                tempColdefinitions.add(this.getColdefinition(attName));
-
-            }else{
-
-                if(selectItem.getAlias()!=this.getColdefinition(selectItem.getAlias()).getColumnName()){//first time
-
-                    attName = selectItem.getExpression().toString();
-                    newName = selectItem.getAlias();
+                        if(_keyAlias!=null){
+                            int i = key.indexOf(".");
+                            String tbName = key.substring(0,i)+".";
+                            key=tbName+_keyAlias;
+                        }
+                        tempValList.put(key,(PrimitiveValue)_pair.getValue());
+                        isMatch=true;
+                        break;
+                    }
 
                 }else{
-                    attName =selectItem.getAlias();
-                    newName = selectItem.getAlias();
+
+                    String colName =key;
+
+                    Pattern regex = Pattern.compile("\\.(\\S+)");
+                    Matcher match = regex.matcher(colName);
+                    if (match.find()){
+                        colName = match.group(1);
+                    }
+
+                    if(_key.equals(colName)){
+
+                        if(_keyAlias!=null){
+                            int i = key.indexOf(".");
+                            String tbName = key.substring(0,i)+".";
+                            key=tbName+_keyAlias;
+                        }
+
+                        tempValList.put(key,(PrimitiveValue)_pair.getValue());
+                        isMatch=true;
+                        break;
+                    }
                 }
+            }
 
-                Column tempColumn = this.rawColumns.get(attName);
-                tempColumn.setColumnName(newName);
+            if(!isMatch){
+                if(_keyAlias!=null){
+                    String tbName = this.columnList.get(0).getTable().getName();
+                    _key=tbName+"."+_keyAlias;
+                }
+                tempValList.put(_key,(PrimitiveValue)_pair.getValue());
+            }
 
-                tempColmns.put(newName,tempColumn);
-                tempColumnValues.put(newName,this.columnValues.get(attName));
-                ColumnDefinition tempDefinition = this.getColdefinition(attName);
-                tempDefinition.setColumnName(newName);
-                tempColdefinitions.add(tempDefinition);
+        }
 
+        this.columnValues=tempValList;
+
+
+//        Update ColumnList
+        List<Column> tempColList = new ArrayList<>();
+
+        for(Column _column:_columnList){
+
+            String _keyAlias = alias.get(_column.getWholeColumnName());
+            boolean isMatch = false;
+            for(Column column:this.columnList){
+
+                if(_column.getTable().getName()==null){//which means: ID not Players.ID
+
+                    if(_column.getColumnName().equals(column.getColumnName())){
+
+                        if(_keyAlias!=null){
+                            column.setColumnName(_keyAlias);
+                        }
+
+                        tempColList.add(column);
+                        isMatch=true;
+                        break;
+                    }
+                }else{
+
+                    if(_column.getWholeColumnName().equals(column.getWholeColumnName())){
+
+                        if(_keyAlias!=null){
+                            column.setColumnName(_keyAlias);
+                        }
+
+                        tempColList.add(column);
+                        isMatch=true;
+                        break;
+                    }
+                }
+            }
+
+            if(!isMatch){
+                if(_keyAlias!=null){
+                    String tbName=columnList.get(0).getTable().getName();
+                    Table tb = new Table();
+                    tb.setName(tbName);
+                    _column.setColumnName(_keyAlias);
+                    _column.setTable(tb);
+                }
+                tempColList.add(_column);
             }
         }
 
-        this.rawColumns=tempColmns;
-        this.columnValues=tempColumnValues;
-        this.coldefinitions=tempColdefinitions;
+        this.columnList = tempColList;
     }
 
-    public void rename(List<String> rename){
+    /**
+     * Customer Serialization
+     * @param out
+     * @throws IOException
+     */
+    private void writeObject(ObjectOutputStream out) throws IOException{
+
+        out.defaultWriteObject();
+//        Iterator it = rawColumns.entrySet().iterator();
+//        while(it.hasNext()){
+//            Map.Entry pair = (Map.Entry)it.next();
+//            String name = (String)pair.getKey();
+//            Column cl = (Column)pair.getValue();
+//            String columnName = cl.getColumnName();
+//            String columnWholename= cl.getWholeColumnName();
+//            String columnTb = cl.getTable().toString();
+//            out.writeObject(name);
+//            out.writeObject(columnName);
+//            out.writeObject(columnTb);
+//
+//        }
+
+//        for(ColumnDefinition def:coldefinitions){
+//            String name = (String)def.getColumnName();
+//            ColDataType type = def.getColDataType();
+//            out.writeObject(name);
+//            out.writeObject(type.toString());
+//        }
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException,ClassNotFoundException{
+
+        in.defaultReadObject();
+//        for(int i=0;i<this.columnValues.size();i++) {
+//            String name = (String) in.readObject();
+//            String columnName = (String) in.readObject();
+//            String clTb = (String)in.readObject();
+//            Table tb = new Table(clTb);
+//            Column cl = new Column();
+//            cl.setColumnName(columnName);
+//            cl.setTable(tb);
+//            if (rawColumns == null) {
+//                this.rawColumns = new HashMap<>();
+//            }
+//            this.rawColumns.put(name, cl);
+//        }
+//
+//        for(int i=0;i<this.columnValues.size();i++) {
+//            if(coldefinitions==null){
+//                coldefinitions = new ArrayList<>();
+//            }
+//
+//            ColumnDefinition def = new ColumnDefinition();
+//            def.setColumnName((String)in.readObject());
+//            String typeString = (String)in.readObject();
+//            ColDataType cltype = new ColDataType();
+//            cltype.setDataType(typeString);
+//            def.setColDataType(cltype);
+//            coldefinitions.add(def);
+//
+//        }
 
     }
 
@@ -144,11 +274,13 @@ public class Tuple {
 
         String result="";
 
-        for (int i = 0; i < this.coldefinitions.size(); i++) {
+        for (int i = 0; i < this.columnList.size(); i++) {
 
             try {
-                String columnName = coldefinitions.get(i).getColumnName();
-                PrimitiveValue columnValue = this.columnValues.get(columnName);
+
+                String wholeColumnName = columnList.get(i).getWholeColumnName();
+
+                PrimitiveValue columnValue = this.columnValues.get(wholeColumnName);
 
                 if (columnValue == null) {
                     // Do nothing
@@ -166,7 +298,7 @@ public class Tuple {
                 e.printStackTrace();
             }
 
-            if (i != coldefinitions.size() - 1){
+            if (i != this.columnList.size() - 1){
                 result += "|";
             }
         }

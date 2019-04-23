@@ -4,26 +4,27 @@ import dubstep.Manager.EvaluatorManager;
 import dubstep.TreeNode.Tuple;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.PrimitiveValue;
-import net.sf.jsqlparser.expression.operators.arithmetic.Addition;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
+import net.sf.jsqlparser.expression.operators.relational.GreaterThan;
+import net.sf.jsqlparser.expression.operators.relational.MinorThan;
 import net.sf.jsqlparser.schema.Column;
-
 import java.util.*;
+import java.util.function.Consumer;
 
-public class Sum extends Aggregator {
+public class Max extends Aggregator implements Iterable<Tuple> {
 
-    Map<String,PrimitiveValue> columnValues = new HashMap<>();
+    Map<String,PrimitiveValue> columnValues = new HashMap<>();//like columnValue
 
-    List<Column> groupByAttrs;
+    List<Column> groupByAttrs;//GroupByAttrs:FIRSTSEASON,LASTSEASON
 
     List<Expression> expressionList;
 
-    public Sum(ExpressionList expressionList, List<Column> groupByColumns) {
+
+
+    public Max(ExpressionList expressionList, List<Column> groupByColumns) {
 
         this.expressionList=expressionList.getExpressions();
         this.groupByAttrs=groupByColumns;
-
-
     }
 
     public void accumulate(Tuple tp){
@@ -41,14 +42,12 @@ public class Sum extends Aggregator {
             EvaluatorManager em = new EvaluatorManager(this.expressionList.get(0));
             PrimitiveValue newValue= em.evaluateAttr(tp);
 
-            if(!columnValues.containsKey(key)){
-                columnValues.put(key,newValue);
-            }else{
-                newValue = em.eval(new Addition(newValue,columnValues.get(key)));
+            if(!columnValues.containsKey(key)|| em.eval(new GreaterThan(newValue,columnValues.get(key))).toBool()){
                 columnValues.put(key,newValue);
             }
 
         }catch (Exception e){e.printStackTrace();}
+
     }
 
     @Override
@@ -56,6 +55,20 @@ public class Sum extends Aggregator {
         return this.columnValues.size();
     }
 
+    @Override
+    public void forEach(Consumer<? super Tuple> action) {
+
+    }
+
+    @Override
+    public Spliterator<Tuple> spliterator() {
+        return null;
+    }
+
+    @Override
+    public Iterator<Tuple> iterator() {
+        return null;
+    }
 
     @Override
     public PrimitiveValue getValue(String key){

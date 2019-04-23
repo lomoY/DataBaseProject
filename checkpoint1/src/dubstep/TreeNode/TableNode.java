@@ -1,10 +1,7 @@
 package dubstep.TreeNode;
 
 import dubstep.Manager.TableManager;
-import net.sf.jsqlparser.expression.DoubleValue;
-import net.sf.jsqlparser.expression.LongValue;
-import net.sf.jsqlparser.expression.NullValue;
-import net.sf.jsqlparser.expression.StringValue;
+import net.sf.jsqlparser.expression.*;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
@@ -34,30 +31,27 @@ public class TableNode extends TreeNode implements IntoTableVisitor {
     Table TableObj;
     File TableFile;
 
-//todo 之后要注意观察schema的获得是在createtable时候进行还是createtable的时候进行
     public TableNode(CreateTable createTable) {
 
         this.TableName=createTable.getTable().getName();
         this.TableObj=createTable.getTable();
-        this.TableFile = Paths.get("/Users/Lomo/Desktop/Courses/DataBaseSystem/SourceCode/checkpoint1_1/test/NBA_Examples/PLAYERS.csv").toFile();
+        this.TableFile = Paths.get("data",TableName+".csv").toFile();
 
     }
 
     private class Itr implements Iterator<Tuple> {
 
         BufferedReader br;
-//        从TableManager处获得schema
+
         Schema schema = TableManager.getSchema(TableNode.this.TableName);
 
-
         List<ColumnDefinition> columnDefinitions = schema.getColumnDefinitions();
-//        ColumnDefinition a = columnDefinitions.get(0);
+
 
         public Itr() {
 
             try {
                 br = new BufferedReader(new FileReader(TableNode.this.TableFile));
-//                思考：schema是在构造函数里赋值还是在全局里赋值
             }catch (IOException e){
                 e.printStackTrace();
             }
@@ -66,7 +60,6 @@ public class TableNode extends TreeNode implements IntoTableVisitor {
         /**
          *
          * @return tuple accroding to the condition in schema(columndifinitions)
-         * 在这里构造tuple
          *
          */
 
@@ -77,6 +70,11 @@ public class TableNode extends TreeNode implements IntoTableVisitor {
                 String[] columnValues = this.br.readLine().split("\\|");
 
                 for(int i =0;i<columnValues.length;i++){
+
+                    Table tb = TableNode.this.TableObj;
+                    if(TableNode.this.aliasValue!=null){
+                        tb.setName(aliasValue);
+                    }
                     Column column = new Column(TableNode.this.TableObj,columnDefinitions.get(i).getColumnName().toString());
                     String colDataType = columnDefinitions.get(i).getColDataType().toString();
                     switch (colDataType) {
@@ -87,12 +85,12 @@ public class TableNode extends TreeNode implements IntoTableVisitor {
                             tp.setColumn(column, new DoubleValue(Double.parseDouble(columnValues[i])));
                             break;
                         case "date":
-                            tp.setColumn(column, new StringValue("'" + columnValues[i] + "'"));
+                            tp.setColumn(column, new DateValue(columnValues[i]));
                             break;
                         case "varchar":
                         case "char":
                         case "string":
-                            tp.setColumn(column, new StringValue("'" + columnValues[i] + "'"));
+                            tp.setColumn(column, new StringValue(columnValues[i]));
                             break;
                         default:
                             tp.setColumn(column, new NullValue());

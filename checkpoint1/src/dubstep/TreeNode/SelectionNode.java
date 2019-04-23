@@ -62,8 +62,6 @@ public class SelectionNode  extends TreeNode {
         public void forEachRemaining(Consumer<? super Tuple> action) { }
     }
 
-
-//    Iterable
     @Override
     public void forEach(Consumer<? super Tuple> action) {
 

@@ -75,17 +75,17 @@ public class FromItemNode extends TreeNode implements FromItemVisitor {
         return new Itr();
     }
 
-
-//   todo table结点之后都从这里获取
-
 //    FromItem Visitor
-
-//    这里就是进来一个table,ALIES = p1
     @Override
     public void visit(Table table) {
-        String tableName = table.getName();//依旧只返回tablename,不会返回alies
+        String tableName = table.getName();//get tableName without alies
 //       todo update tablename to alies if any
+        TableNode td = TableManager.getTable(tableName);
+        if(table.getAlias()!=null){
+            td.setAliasValue(table.getAlias());
+        }
         this.leftChildNode= TableManager.getTable(tableName);
+
     }
 
     @Override
@@ -94,7 +94,7 @@ public class FromItemNode extends TreeNode implements FromItemVisitor {
     }
 
     //SELECT FIRSTNAME, LASTNAME, WEIGHT, BIRTHDATE FROM (SELECT FIRSTNAME, LASTNAME,FIRSTSEASON, WEIGHT, BIRTHDATE FROM PLAYERS);
-//    中的SELECT FIRSTNAME, LASTNAME,FIRSTSEASON, WEIGHT, BIRTHDATE FROM PLAYERS
+//    SELECT FIRSTNAME, LASTNAME,FIRSTSEASON, WEIGHT, BIRTHDATE FROM PLAYERS
 //    subselect = select
     @Override
     public void visit(SubSelect subSelect) {

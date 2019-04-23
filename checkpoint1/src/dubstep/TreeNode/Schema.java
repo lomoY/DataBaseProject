@@ -6,12 +6,11 @@ import net.sf.jsqlparser.statement.create.table.Index;
 import java.util.ArrayList;
 import java.util.List;
 
-
 /**
  * @author Lomo
  */
-public class Schema {
 
+public class Schema {
 
     List<ColumnDefinition> columnDefinitions=new ArrayList<>();
     String tableName;
@@ -38,14 +37,4 @@ public class Schema {
 
 
 }
-
-
-//whenever there is a aliassname the tablename is discarded. thetable will always be referred from the aliasname
-//SELECT A FROM R T
-//
-//public class Cloumn extends ColumnDefinition{
-//    columnDefinitions
-//    String alias;
-//
-//}
 

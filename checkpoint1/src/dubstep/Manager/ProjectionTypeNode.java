@@ -1,8 +1,6 @@
 package dubstep.Manager;
 
-import dubstep.TreeNode.ProjectionNode;
-import dubstep.TreeNode.TreeNode;
-import dubstep.TreeNode.Tuple;
+import dubstep.TreeNode.*;
 import net.sf.jsqlparser.statement.select.*;
 import java.util.Iterator;
 import java.util.Spliterator;
@@ -29,9 +27,33 @@ public class ProjectionTypeNode extends TreeNode implements SelectVisitor {
 
     @Override
     public void visit(PlainSelect plainSelect) {
+        if(plainSelect.getLimit()!=null){
 
-        ProjectionNode projectionNode = new ProjectionNode(plainSelect);
-        this.setLeftChildNode(projectionNode);
+            LimitOperator lo = new LimitOperator(plainSelect.getLimit());
+
+            this.setLeftChildNode(lo);
+            if(plainSelect.getOrderByElements()!=null){
+
+                ProjectionNode projectionNode = new ProjectionNode(plainSelect);
+                OrderByOperator odb = new OrderByOperator(plainSelect.getOrderByElements());
+
+                odb.setLeftChildNode(projectionNode);
+                lo.setLeftChildNode(odb);
+            }
+
+        }else if(plainSelect.getOrderByElements()!=null){
+            OrderByOperator odb = new OrderByOperator(plainSelect.getOrderByElements());
+            ProjectionNode projectionNode = new ProjectionNode(plainSelect);
+            odb.setLeftChildNode(projectionNode);
+            this.setLeftChildNode(odb);
+
+        }else {
+            ProjectionNode projectionNode = new ProjectionNode(plainSelect);
+            this.setLeftChildNode(projectionNode);
+
+        }
+
+
     }
 
     @Override
@@ -41,7 +63,7 @@ public class ProjectionTypeNode extends TreeNode implements SelectVisitor {
         Iterator<Tuple> lfItr;
 
         Itr(){
-            // todo 这里不知道为什么不能直接用this.leftchildNode()
+
             lfItr = ProjectionTypeNode.this.getLeftChildNode().iterator();
         }
 

@@ -9,12 +9,13 @@ public class Main {
 
     public static void main(String[] args) throws ParseException{
 
-        System.out.print("$>");
+        System.out.println("$>");
         CCJSqlParser parser = new CCJSqlParser(System.in);
         Statement statement;
         while ((statement = parser.Statement())!=null) {
             statement.accept(new StatementManager());
-            System.out.print("$>");
+            System.out.println("$>");
         }
+
     }
 }

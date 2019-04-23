@@ -1,6 +1,6 @@
 package dubstep.TreeNode;
 
-import dubstep.Aggregator.GroupByIterator;
+import dubstep.Aggregator.AggrNode;
 import dubstep.Manager.EvaluatorManager;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
@@ -39,19 +39,36 @@ public class ProjectionNode extends TreeNode implements SelectItemVisitor {
 //        Set TableNode as Child
         FromItem fromItem=plainSelect.getFromItem();
         FromItemNode fromItemNode = new FromItemNode(fromItem);
-        if(leftChildNode==null){
+
+
+        List<Join> joins= plainSelect.getJoins();
+        if(joins!= null) {
+            JoinNode joinNode = new JoinNode(fromItemNode, joins);
+            if (leftChildNode == null) {
+                this.setLeftChildNode(joinNode);
+            } else {
+                this.leftChildNode.setLeftChildNode(joinNode);
+            }
+        } else {
+//            Set TableNode as Child
+
+            if(leftChildNode==null){
                 this.setLeftChildNode(fromItemNode);
-        }else{
-            this.leftChildNode.setLeftChildNode(fromItemNode);
+            }else{
+                this.leftChildNode.setLeftChildNode(fromItemNode);
+            }
         }
 
-//        GroupBy可以看做是project的一种
+        //old version
+//        if(leftChildNode==null){
+//                this.setLeftChildNode(fromItemNode);
+//        }else{
+//            this.leftChildNode.setLeftChildNode(fromItemNode);
+//        }
+
+
         this.groupByColumns=plainSelect.getGroupByColumnReferences();
-//        GroupByIterator gbn = new GroupByIterator();
-//        List<Join> x =plainSelect.getJoins();
-//        Join s = new Join();
-//        x.get(0).getRightItem();
-//        System.out.println(x);
+
     }
 
     /**
@@ -69,7 +86,7 @@ public class ProjectionNode extends TreeNode implements SelectItemVisitor {
 
             lfir = ProjectionNode.this.leftChildNode.iterator();
             projectAttrs = ProjectionNode.this.projectAttrs;
-            projectEm = new EvaluatorManager(projectAttrs);
+
         }
 
         /**
@@ -80,18 +97,15 @@ public class ProjectionNode extends TreeNode implements SelectItemVisitor {
 
         @Override
         public Tuple next() {
+
             Tuple tp = lfir.next();
 
-            //这里要做groupbyproject
-//            if(true){
-//
-//            }
-            tp=projectEm.evaluateProjection(tp);
-
-            //这里是正常的project
-            if(projectAttrs.size()!=0){//if not Players.*
-//                tp.upDateColumn(projectAttrs);
+            if(projectAttrs.size()==0){//if not Players.*
+            }else{
+                projectEm = new EvaluatorManager(projectAttrs);
+                tp=projectEm.evaluateProjection(tp);
             }
+
             return tp;
         }
 
@@ -125,8 +139,8 @@ public class ProjectionNode extends TreeNode implements SelectItemVisitor {
     public void visit(AllColumns allColumns) {
         // nothing need to be changed if select *
     }
-//  PLAYERS.*
-//  TABLE"PLAYERS"
+    //  PLAYERS.*
+    //  TABLE"PLAYERS"
 
     @Override
     public void visit(AllTableColumns allTableColumns) {
@@ -157,7 +171,7 @@ public class ProjectionNode extends TreeNode implements SelectItemVisitor {
     public Iterator iterator() {
 
         if(this.isGroupBy==true){
-            return new GroupByIterator(this.projectAttrs,this.groupByColumns,leftChildNode.iterator());
+            return new AggrNode(this.projectAttrs,this.groupByColumns,leftChildNode.iterator());
         }else {
             return new Itr();
         }
