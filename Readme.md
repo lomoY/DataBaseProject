@@ -14,10 +14,10 @@
 - [x] Parse tree gengerate 
 - [x] Subselection
 - [x] Alies: r.a, r as p1, a as b
-- [ ] File Path configuration **@Yizhan Wu**
+- [x] File Path configuration **@Yizhan Wu**
 - [ ] EvaluatorManager **@Yizhan Wu**
 - [ ] JoinNode **@Nhrkr**
-- [ ] Count **@LomoY**
-- [ ] Sum **@LomoY**
-- [ ] LimitNode **@LomoY**
-- [ ] SortNode **@LomoY**
+- [x] Count **@LomoY**
+- [x] Sum **@LomoY**
+- [x] LimitNode **@LomoY**
+- [x] SortNode **@LomoY**
