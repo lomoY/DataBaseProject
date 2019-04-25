@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 public class Tuple implements Serializable {
 
     public Map<String,PrimitiveValue> columnValues = new HashMap<>();//only for print out
-    List<Column> columnList = new ArrayList<>();
+    public List<Column> columnList = new ArrayList<>();
 
     public Tuple(){
 

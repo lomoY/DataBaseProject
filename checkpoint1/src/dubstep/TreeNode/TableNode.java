@@ -65,7 +65,9 @@ public class TableNode extends TreeNode implements IntoTableVisitor {
 
         @Override
         public Tuple next() {
+
             try {
+
                 Tuple tp = new Tuple(columnDefinitions);
                 String[] columnValues = this.br.readLine().split("\\|");
 
@@ -75,6 +77,7 @@ public class TableNode extends TreeNode implements IntoTableVisitor {
                     if(TableNode.this.aliasValue!=null){
                         tb.setName(aliasValue);
                     }
+
                     Column column = new Column(TableNode.this.TableObj,columnDefinitions.get(i).getColumnName().toString());
                     String colDataType = columnDefinitions.get(i).getColDataType().toString();
                     switch (colDataType) {

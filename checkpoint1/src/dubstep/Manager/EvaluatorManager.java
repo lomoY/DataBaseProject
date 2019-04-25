@@ -528,25 +528,15 @@ public class EvaluatorManager extends Eval implements ExpressionVisitor {
             PrimitiveValue colValue=this.eval(column);
 
             this.columnValues.put(column.getWholeColumnName().toString(),colValue);
-
+            this.result=colValue;
         }catch (Exception e){
 
         }
-
-//        ColumnDefinition columnDefinition = this.tp.getColdefinition(colName);
-//        Column col=this.tp.getRawColumn(colName);
-//        this.rawColumns.put(colName,col);
-//        this.columnValues.put(colName,colValue);
 
         if(this.columnList.contains(column)==false){
 
             this.columnList.add(column);
         }
-
-//        if(this.coldefinitions.contains(columnDefinition)==false){
-//
-//            this.coldefinitions.add(columnDefinition);
-//        }
 
     }
 

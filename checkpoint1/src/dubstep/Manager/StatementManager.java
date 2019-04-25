@@ -21,8 +21,9 @@ public class StatementManager implements StatementVisitor {
 
         parseTree = new ProjectionTypeNode(select.getSelectBody());
 
-        Optimizer opt = new Optimizer(parseTree);
-        parseTree  = opt.optimize();
+//        Optimizer opt = new Optimizer(parseTree);
+//        opt.optimize(parseTree);
+//      parseTree  = opt.optimize(parseTree);
 
         for (Tuple tuple : parseTree){
             System.out.println(tuple);

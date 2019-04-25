@@ -5,10 +5,8 @@ import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.expression.PrimitiveValue;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.schema.Column;
-import net.sf.jsqlparser.statement.create.table.ColDataType;
-import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
+import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
-
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -25,7 +23,7 @@ public class AggrNode implements Iterator<Tuple> {
     Map<String,Aggregator> aggreFeilds = new TreeMap<>();
     Map<String,Column> rawColumns = new HashMap<>();
     Map<String,PrimitiveValue> columnValues = new HashMap<>();
-//    List<ColumnDefinition> columnDefinitions = new ArrayList<>();
+
     List<Column> colList = new ArrayList<>();
     ArrayList<String> keyList= new ArrayList<>();
     String key="";
@@ -53,17 +51,17 @@ public class AggrNode implements Iterator<Tuple> {
         for(SelectExpressionItem item:projectAttrs){
 
             if(item.getExpression() instanceof Function){
+
                 Aggregator aggregator=null;
                 this.aggrFn=(Function) item.getExpression();
                 String aggrfnName = this.aggrFn.getName();//gBfn
                 String alias = item.getAlias();
-
                 this.expressionList=this.aggrFn.getParameters();//firstname
 
-                Column aggCol = new Column();
-                ColumnDefinition aggDef = new ColumnDefinition();
-                ColDataType dataType = new ColDataType();
-                dataType.setDataType("long");
+                //Initialize Column
+                Column col = new Column();
+                Table tb  = new Table();
+                col.setTable(tb);
 
                 if(aggrfnName.equals("COUNT")){
                     aggregator= new Count(this.expressionList,groupByColumns);
@@ -94,22 +92,25 @@ public class AggrNode implements Iterator<Tuple> {
                     }
                 }
 
-                aggCol.setColumnName(alias);
-                aggDef.setColumnName(alias);
-                aggDef.setColDataType(dataType);
+
+                col.setColumnName(alias);
                 this.aggreFeilds.put(alias,aggregator);
-                this.rawColumns.put(alias,aggCol);
-//                this.columnDefinitions.add(aggDef);
+                this.colList.add(col);
+
             }else if(item.getExpression() instanceof Column ){
 
                 String alias = item.getAlias();
-                Aggregator aggregator=null;
-                aggregator = new GroupByColumn(item,groupByColumns);
+                Aggregator aggregator= new GroupByColumn(item,groupByColumns);
                 if(alias==null){
                     alias=item.getExpression().toString();
                 }
-
+                //Initialize Column
+                Column col = new Column();
+                col.setColumnName(alias);
+                Table tb  = new Table();
+                col.setTable(tb);
                 this.aggreFeilds.put(alias,aggregator);
+                this.colList.add(col);
 
             }
         }
@@ -167,32 +168,16 @@ public class AggrNode implements Iterator<Tuple> {
         Tuple tp = new Tuple();
 
         Iterator fieldsItr = this.aggreFeilds.entrySet().iterator();
-        //just for weight
-        List<Column> colList = new ArrayList<>();
-
-        List<ColumnDefinition> columnDefinitions = new ArrayList<>();
-//        columnDefinitions=this.columnDefinitions;
 
         while(fieldsItr.hasNext()){
             Map.Entry pair = (Map.Entry)fieldsItr.next();
             Aggregator aggregator= (Aggregator) pair.getValue();
             PrimitiveValue colValue=aggregator.getValue(key);
             columnValues.put((String)pair.getKey(),colValue);
-
-            //column
-            if(aggregator instanceof GroupByColumn){
-
-                GroupByColumn gbc=(GroupByColumn)aggregator;
-                ColumnDefinition colDef = gbc.getDefinition();;
-                if(!columnDefinitions.contains(colDef)){
-
-                    columnDefinitions.add(colDef);
-                }
-            }
         }
 
         tp.columnValues= this.columnValues;
-;
+        tp.columnList = this.colList;
         return tp;
     }
 
