@@ -284,6 +284,7 @@ public class OrderByOperator extends TreeNode implements OrderByVisitor{
                 PrimitiveValue v2 = t2.getColumnValue(odbEle.get(i).getExpression().toString());
 
                 try{
+                    //date and
                     Long v1long = v1.toLong();
                     Long v2long = v2.toLong();
                     result = v1long.compareTo(v2long);

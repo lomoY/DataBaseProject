@@ -77,6 +77,7 @@ public class Optimizer {
                 selectionNode.setLeftChildNode(childOflftChild);
                 lftChild.setLeftChildNode(selectionNode);
                 SelectionPushDown(selectionNode);
+
             }else{
                 //index scan
             }
@@ -97,6 +98,7 @@ public class Optimizer {
             }
 
             return rhsChild;
+
         }
 
         return lftChild;
