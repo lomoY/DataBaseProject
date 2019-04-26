@@ -1,11 +1,12 @@
 package dubstep.TreeNode;
 
+import dubstep.Manager.TableManager;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
-import java.io.File;
+
+import java.io.*;
 import java.util.Iterator;
 import java.util.List;
-import java.io.FileNotFoundException;
 import java.util.Scanner;
 import java.util.*;
 
@@ -15,6 +16,7 @@ import net.sf.jsqlparser.statement.create.table.Index;
  */
 
 public class IndexNode {
+    private static final String scanFile = ;
     static TreeMap<String,TreeMap<String,ArrayList<Integer>>> indexes=new TreeMap<>();
     public IndexNode(CreateTable createTable, String tableName) {
         {
@@ -23,7 +25,7 @@ public class IndexNode {
             ArrayList<String[]> data = new ArrayList<>();
             Map<String, Integer> colPos=new HashMap<>();
 //          scanFile = new File("test/" + tableName + ".csv");
-            scanFile= new File ("G:/UB/Spring'19/DB/cse562-master/DataBaseProject_1/checkpoint1/test/NBA_Examples/PLAYERS.csv");
+            scanFile= new File ("test/NBA_Examples/PLAYERS.csv");
             try
             {
                 List<Index> indices= createTable.getIndexes();
@@ -106,4 +108,50 @@ public class IndexNode {
 
         }
     }
+
+    private class Itr implements Iterator<Index> {
+        BufferedReader br;
+        Schema schema = TableManager.getSchema(IndexNode.this.scanFile);
+        List<ColumnDefinition> columnDefinitions = schema.getColumnDefinitions();
+
+        public Itr() {
+            try {
+                br = new BufferedReader(new FileReader(IndexNode.scanFile));
+            }catch (IOException e){
+                e.printStackTrace();
+            }
+        }
+
+        public Index next() {
+            try {
+                Tuple tp = new Tuple(columnDefinitions);
+                
+                return tp;
+            }catch (IOException e){
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        public boolean hasNext() {
+            try{
+                if(br==null){
+                    return false;
+                }else if(br.ready()){
+                    return true;
+                }
+                else {
+                    br.close();
+                    return false;
+                }
+            }catch (IOException e){
+                e.printStackTrace();
+                return false;
+            }
+        }
+
+
+    }
+
+
 }

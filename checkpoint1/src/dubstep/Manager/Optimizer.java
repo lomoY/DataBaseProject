@@ -39,7 +39,7 @@ public class Optimizer {
             if(treeNode.getLeftChildNode() instanceof SelectionNode){ //WhereNode
 
             }else if(treeNode instanceof SelectionNode && treeNode.getLeftChildNode() instanceof JoinNode){ // JoinNode
-                treeNode.getLeftChildNode()
+                treeNode.getLeftChildNode();
             }
 
         }
