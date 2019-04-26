@@ -2,6 +2,7 @@ package dubstep.TreeNode;
 
 import net.sf.jsqlparser.expression.*;
 import net.sf.jsqlparser.schema.Column;
+import net.sf.jsqlparser.schema.PrimitiveType;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.create.table.ColDataType;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
@@ -22,7 +23,7 @@ import java.util.regex.Pattern;
 public class Tuple implements Serializable {
 
     public Map<String,PrimitiveValue> columnValues = new HashMap<>();//only for print out
-    public List<Column> columnList = new ArrayList<>();
+   transient public List<Column> columnList = new ArrayList<>();
 
     public Tuple(){ }
 
@@ -205,60 +206,52 @@ public class Tuple implements Serializable {
     private void writeObject(ObjectOutputStream out) throws IOException{
 
         out.defaultWriteObject();
-//        Iterator it = rawColumns.entrySet().iterator();
-//        while(it.hasNext()){
-//            Map.Entry pair = (Map.Entry)it.next();
-//            String name = (String)pair.getKey();
-//            Column cl = (Column)pair.getValue();
-//            String columnName = cl.getColumnName();
-//            String columnWholename= cl.getWholeColumnName();
-//            String columnTb = cl.getTable().toString();
-//            out.writeObject(name);
-//            out.writeObject(columnName);
-//            out.writeObject(columnTb);
-//
-//        }
+        Iterator it = this.columnValues.entrySet().iterator();
 
-//        for(ColumnDefinition def:coldefinitions){
-//            String name = (String)def.getColumnName();
-//            ColDataType type = def.getColDataType();
-//            out.writeObject(name);
-//            out.writeObject(type.toString());
-//        }
+        while(it.hasNext()){
+
+            Map.Entry pair = (Map.Entry)it.next();
+            String colWholeName = (String)pair.getKey();
+            PrimitiveValue val = (PrimitiveValue) pair.getValue();
+            out.writeObject(colWholeName);
+            out.writeObject(val);
+
+        }
+
+        for(Column col:columnList){
+
+            String name = col.getColumnName();
+            String tableName = col.getTable().getName();
+            out.writeObject(name);
+            out.writeObject(tableName);
+
+        }
     }
 
     private void readObject(ObjectInputStream in) throws IOException,ClassNotFoundException{
 
         in.defaultReadObject();
-//        for(int i=0;i<this.columnValues.size();i++) {
-//            String name = (String) in.readObject();
-//            String columnName = (String) in.readObject();
-//            String clTb = (String)in.readObject();
-//            Table tb = new Table(clTb);
-//            Column cl = new Column();
-//            cl.setColumnName(columnName);
-//            cl.setTable(tb);
-//            if (rawColumns == null) {
-//                this.rawColumns = new HashMap<>();
-//            }
-//            this.rawColumns.put(name, cl);
-//        }
-//
-//        for(int i=0;i<this.columnValues.size();i++) {
-//            if(coldefinitions==null){
-//                coldefinitions = new ArrayList<>();
-//            }
-//
-//            ColumnDefinition def = new ColumnDefinition();
-//            def.setColumnName((String)in.readObject());
-//            String typeString = (String)in.readObject();
-//            ColDataType cltype = new ColDataType();
-//            cltype.setDataType(typeString);
-//            def.setColDataType(cltype);
-//            coldefinitions.add(def);
-//
-//        }
+        for(int i=0;i<this.columnValues.size();i++) {
 
+            String  colWholeName= (String) in.readObject();
+            PrimitiveValue val = (PrimitiveValue)in.readObject();
+            this.columnValues.put(colWholeName,val);
+
+        }
+
+        this.columnList = new ArrayList<>();// todo why this.columnList = null?
+        for(int i=0;i<this.columnValues.size();i++) {
+
+            String colName = (String )in.readObject();
+            String tbName = (String )in.readObject();
+            Column col = new Column();
+            Table tb = new Table();
+            col.setColumnName(colName);
+            tb.setName(tbName);
+            col.setTable(tb);
+            this.columnList.add(col);
+
+        }
     }
 
     @Override

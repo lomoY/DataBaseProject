@@ -176,7 +176,9 @@ public class OrderByOperator extends TreeNode implements OrderByVisitor{
 //                    System.out.println(x);
 //                }
 
-            }catch (Exception e){}
+            }catch (Exception e){
+                System.out.println(1);
+            }
     }
 
     public void merge(String file1,String file2,ObjectOutputStream oos){
