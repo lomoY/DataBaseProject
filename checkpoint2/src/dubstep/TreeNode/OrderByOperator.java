@@ -2,6 +2,7 @@ package dubstep.TreeNode;
 
 import dubstep.Manager.EvaluatorManager;
 import net.sf.jsqlparser.expression.PrimitiveValue;
+import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.expression.operators.relational.GreaterThan;
 import net.sf.jsqlparser.statement.select.OrderByElement;
 import net.sf.jsqlparser.statement.select.OrderByVisitor;
@@ -168,13 +169,6 @@ public class OrderByOperator extends TreeNode implements OrderByVisitor{
                 oos.close();
                 fos.close();
 
-//                FileInputStream fis = new FileInputStream(tempFile);
-//                ObjectInputStream ois = new ObjectInputStream(fis);
-//                Object tp = ois.readObject();
-//                ArrayList<Tuple> abcde = (ArrayList)tp;
-//                for(Tuple x:abcde){
-//                    System.out.println(x);
-//                }
 
             }catch (Exception e){
                 System.out.println(1);
@@ -274,36 +268,37 @@ public class OrderByOperator extends TreeNode implements OrderByVisitor{
 
     }
 
-    private class myComparator implements Comparator<Tuple>{
+    /**
+     * 0 :  v1 == v2
+     * -1:  v1<v2
+     * 1 :  v1>v2
+     */
 
+    private class myComparator implements Comparator<Tuple>{
+        EvaluatorManager evelmgr = new EvaluatorManager();
         @Override
         public int compare(Tuple t1, Tuple t2) {
 
-            int result = 0;
+            boolean result = false;
             for(int i =0;i<odbEle.size();i++){
 
                 PrimitiveValue v1 = t1.getColumnValue(odbEle.get(i).getExpression().toString());
                 PrimitiveValue v2 = t2.getColumnValue(odbEle.get(i).getExpression().toString());
 
                 try{
-                    //date and
-                    Long v1long = v1.toLong();
-                    Long v2long = v2.toLong();
-                    result = v1long.compareTo(v2long);
 
-                    if(result==0){
-                        //do nothing, read next odbEle
+                    result = evelmgr.eval(new GreaterThan(v1,v2)).toBool();
+                    if(result==true){
+                        return 1;
                     }else{
+                        result=evelmgr.eval(new EqualsTo(v1,v2)).toBool();
+                        if(result==true){
 
-                        return v1long.compareTo(v2long);
-
+                        }else {
+                            return -1;
+                        }
                     }
-
-                    /**
-                     * 0 :  v1 == v2
-                     * -1:  v1<v2
-                     * 1 :  v1>v2
-                     */
+                    
                 }catch (Exception e){}
             }
             return 0;
