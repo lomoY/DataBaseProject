@@ -2,9 +2,12 @@ package dubstep.TreeNode;
 
 import dubstep.Manager.EvaluatorManager;
 import net.sf.jsqlparser.expression.PrimitiveValue;
+import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.expression.operators.relational.GreaterThan;
 import net.sf.jsqlparser.statement.select.OrderByElement;
 import net.sf.jsqlparser.statement.select.OrderByVisitor;
+
+import javax.lang.model.type.PrimitiveType;
 import java.io.*;
 import java.util.*;
 import java.util.function.Consumer;
@@ -141,18 +144,16 @@ public class OrderByOperator extends TreeNode implements OrderByVisitor{
         }
     }
 
-
-
     public void createBlock(List<Tuple> workingSet){
 
             workingSet.sort(new myComparator());
-
 
             String fileName = "temp"+num;
 //            System.out.println(fileName);
             fileNameList.add(fileName);
             File tempFile= new File(fileName);
             num++;
+
             try{
                 //write it out to disk
                 //entire working set is big.
@@ -168,16 +169,9 @@ public class OrderByOperator extends TreeNode implements OrderByVisitor{
                 oos.close();
                 fos.close();
 
-//                FileInputStream fis = new FileInputStream(tempFile);
-//                ObjectInputStream ois = new ObjectInputStream(fis);
-//                Object tp = ois.readObject();
-//                ArrayList<Tuple> abcde = (ArrayList)tp;
-//                for(Tuple x:abcde){
-//                    System.out.println(x);
-//                }
 
             }catch (Exception e){
-
+                System.out.println(1);
             }
     }
 
@@ -214,6 +208,7 @@ public class OrderByOperator extends TreeNode implements OrderByVisitor{
                             hasNext2=false;
                         }
                     }
+
                     if(hasNext1&&hasNext2){
                         EvaluatorManager em = new EvaluatorManager(odbEle.get(0).getExpression());
                         if(!em.eval(new GreaterThan(tp1.getColumnValue(odbEle.get(0).getExpression().toString()),tp2.getColumnValue(odbEle.get(0).getExpression().toString()))).toBool()){
@@ -245,21 +240,18 @@ public class OrderByOperator extends TreeNode implements OrderByVisitor{
                 }
 
             }
+
             ois1.close();
             ois2.close();
-
 
         }catch (Exception e){
 
         }
 
-
     }
 
     @Override
-    public void forEach(Consumer<? super Tuple> action) {
-
-    }
+    public void forEach(Consumer<? super Tuple> action) {}
 
     @Override
     public Spliterator<Tuple> spliterator() {
@@ -276,28 +268,39 @@ public class OrderByOperator extends TreeNode implements OrderByVisitor{
 
     }
 
-    private class myComparator implements Comparator<Tuple>{
+    /**
+     * 0 :  v1 == v2
+     * -1:  v1<v2
+     * 1 :  v1>v2
+     */
 
+    private class myComparator implements Comparator<Tuple>{
+        EvaluatorManager evelmgr = new EvaluatorManager();
         @Override
         public int compare(Tuple t1, Tuple t2) {
-            PrimitiveValue v1 = t1.getColumnValue(odbEle.get(0).getExpression().toString());
-            PrimitiveValue v2 = t2.getColumnValue(odbEle.get(0).getExpression().toString());
-//            String dt1 = t1.getColdefinition(odbEle.get(0).getExpression().toString()).getColDataType().toString();
-//            String dt2 = t2.getColdefinition(odbEle.get(0).getExpression().toString()).getColDataType().toString();
 
-//            try{
-//                if(dt1.equals("int")){
-//                        Long v1Long = v1.toLong();
-//                        Long v2Long = v2.toLong();
-//                    return v1Long.compareTo(v2Long);
-//                    }
-//            }catch (Exception e){
-//                e.printStackTrace();
-//            }
+            boolean result = false;
+            for(int i =0;i<odbEle.size();i++){
 
-            v1.getType();
-            v2.getType();
+                PrimitiveValue v1 = t1.getColumnValue(odbEle.get(i).getExpression().toString());
+                PrimitiveValue v2 = t2.getColumnValue(odbEle.get(i).getExpression().toString());
 
+                try{
+
+                    result = evelmgr.eval(new GreaterThan(v1,v2)).toBool();
+                    if(result==true){
+                        return 1;
+                    }else{
+                        result=evelmgr.eval(new EqualsTo(v1,v2)).toBool();
+                        if(result==true){
+
+                        }else {
+                            return -1;
+                        }
+                    }
+
+                }catch (Exception e){}
+            }
             return 0;
         }
 

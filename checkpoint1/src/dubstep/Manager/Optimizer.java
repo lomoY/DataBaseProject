@@ -24,12 +24,8 @@ import dubstep.TreeNode.*;
  */
 
 public class Optimizer {
-    TreeNode oldTree;
-    TreeNode whereNode;
-    TreeNode lhsFromItemNode;
-    TreeNode rhsFromItemNode;
 
-    boolean pattern1 = false;
+    TreeNode oldTree;
 
     public Optimizer(TreeNode parseTree) {
 
@@ -44,7 +40,7 @@ public class Optimizer {
 
             if(treeNode.getLeftChildNode() instanceof SelectionNode){ //WhereNode
 //          Enter Selection Push Down
-                treeNode.setLeftChildNode(SelectionPushDown(treeNode.getLeftChildNode()));
+                treeNode.setLeftChildNode(SelectionPushDown((SelectionNode) treeNode.getLeftChildNode()));
 
             }else {
                 optimize(lfhNode);
@@ -67,44 +63,45 @@ public class Optimizer {
      *                                  -------- FromItemNode
      */
 
-    private TreeNode SelectionPushDown (TreeNode selectionNode) {
 
-        if (selectionNode.getLeftChildNode() instanceof FromItemNode) {
+    private TreeNode SelectionPushDown (SelectionNode selectionNode) {
 
-            FromItemNode fin = (FromItemNode) selectionNode.getLeftChildNode();
+        TreeNode lftChild = selectionNode.getLeftChildNode();
+        TreeNode rhsChild = selectionNode.getRightChildNode();
 
-            if (fin.getLeftChildNode() instanceof ProjectionTypeNode) {
+        if(lftChild!=null){
 
-                ProjectionTypeNode ptn = (ProjectionTypeNode) fin.getLeftChildNode();
+            if(!(lftChild instanceof TableNode)){
 
-                if (ptn.getLeftChildNode() instanceof ProjectionNode) {
+                TreeNode childOflftChild = lftChild.getLeftChildNode();
+                selectionNode.setLeftChildNode(childOflftChild);
+                lftChild.setLeftChildNode(selectionNode);
+                SelectionPushDown(selectionNode);
 
-                    ProjectionNode pn = (ProjectionNode) ptn.getLeftChildNode();
-
-                    if (pn.getLeftChildNode() instanceof JoinNode) {
-
-                        JoinNode jn = (JoinNode) pn.getLeftChildNode();
-
-                        FromItemNode lfhFromItem = (FromItemNode) jn.getLeftChildNode();
-                        FromItemNode rhsFromItem = (FromItemNode) jn.getRightChildNode();
-
-                        SelectionNode lfhSN = (SelectionNode) selectionNode;
-                        SelectionNode rhsSN = (SelectionNode) selectionNode;
-
-                        lfhSN.setLeftChildNode(lfhFromItem);
-                        rhsSN.setRightChildNode(rhsFromItem);
-
-                        jn.setLeftChildNode(lfhSN);
-                        jn.setRightChildNode(rhsSN);
-                        return ptn;
-                    }
-                    return selectionNode;
-                }
-                return selectionNode;
+            }else{
+                //index scan
             }
-            return selectionNode;
-        }
-        return selectionNode;
 
+            return lftChild;
+
+        }
+
+        if(rhsChild!=null){
+
+            if(!(lftChild instanceof TableNode)){
+
+                TreeNode childOflftChild = lftChild.getLeftChildNode();
+                selectionNode.setLeftChildNode(childOflftChild);
+                lftChild.setLeftChildNode(selectionNode);
+                SelectionPushDown(selectionNode);
+
+            }
+
+            return rhsChild;
+
+        }
+
+        return lftChild;
     }
+
 }

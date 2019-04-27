@@ -113,11 +113,13 @@ public class TableNode extends TreeNode implements IntoTableVisitor {
             try{
                 if(br==null){
                     return false;
-                }else if(br.ready()){
+                }
+                else if(br.ready()){//second
                     return true;
                 }
                 else {
                     br.close();
+                    br = null;
                     return false;
                 }
             }catch (IOException e){
