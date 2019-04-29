@@ -26,7 +26,9 @@ public class StatementManager implements StatementVisitor {
 //      parseTree  = opt.optimize(parseTree);
 
         for (Tuple tuple : parseTree){
+
             System.out.println(tuple);
+
         }
     }
 
