@@ -28,11 +28,10 @@ public class TableManager {
         String tableName = createTable.getTable().getName();
         TableNode newTable = new TableNode(createTable);
         Schema newSchema  = new Schema(createTable);
-        IndexNode newIndex= new IndexNode(createTable, tableName);
+        IndexNode newIndex= new IndexNode(createTable);
         TableMap.put(tableName,newTable);
         SchemaMap.put(tableName,newSchema);
         IndexMap.put(tableName,newIndex);
-//        CreateIndex(createTable,tableName);
 
 //ALIIES Name
         return true;
@@ -50,6 +49,6 @@ public class TableManager {
         return SchemaMap.get(tableName);
     }
 
-//    public static IndexNode getIndex(String tableName) { return newIndex.get(tableName);}
+    public static IndexNode getIndex(String tableName) { return IndexMap.get(tableName);}
 }
 
