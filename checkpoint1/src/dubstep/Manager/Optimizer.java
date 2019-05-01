@@ -1,4 +1,5 @@
 package dubstep.Manager;
+import net.sf.jsqlparser.expression.Expression;
 
 /**
  *
@@ -12,6 +13,9 @@ package dubstep.Manager;
  */
 
 import dubstep.TreeNode.*;
+import net.sf.jsqlparser.expression.operators.relational.*;
+import net.sf.jsqlparser.statement.select.SubSelect;
+
 
 /**
  *
@@ -23,7 +27,7 @@ import dubstep.TreeNode.*;
  *                           Where ----> Table2
  */
 
-public class Optimizer {
+public class Optimizer{
 
     TreeNode oldTree;
 
@@ -80,6 +84,15 @@ public class Optimizer {
 
             }else{
                 //index scan
+                Expression whereCondition = selectionNode.getWhereCondition();
+
+                RelationManager rm = new RelationManager(whereCondition);
+                TableNode tbn=(TableNode)lftChild;
+                String tableName = tbn.getTableName();
+
+                IndexScan is = new IndexScan(tableName, rm.getColName(),rm.getLowerBound(),rm.getUpperBound(),false);
+                lftChild=is;
+                System.out.println(1);
             }
 
             return lftChild;
@@ -103,5 +116,6 @@ public class Optimizer {
 
         return lftChild;
     }
+
 
 }

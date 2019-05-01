@@ -1,5 +1,6 @@
 package dubstep.Manager;
 
+import dubstep.TreeNode.IndexNode;
 import dubstep.TreeNode.Schema;
 import dubstep.TreeNode.TableNode;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
@@ -14,6 +15,7 @@ public class TableManager {
 
     static  Map<String, TableNode> TableMap = new HashMap<String, TableNode>();
     static Map<String,Schema> SchemaMap = new HashMap<>();
+    static Map<String,IndexNode> IndexMap = new HashMap<>();
 
     static boolean createTable(CreateTable createTable){
 
@@ -23,6 +25,7 @@ public class TableManager {
         Schema newSchema  = new Schema(createTable);
         TableMap.put(tableName,newTable);
         SchemaMap.put(tableName,newSchema);
+        IndexNode newIndex= new IndexNode(createTable);
 //ALIIES Name
         return true;
     }
@@ -38,4 +41,5 @@ public class TableManager {
     public static Schema getSchema(String tableName) {
         return SchemaMap.get(tableName);
     }
+    public static IndexNode getIndex(String tableName) { return IndexMap.get(tableName);}
 }

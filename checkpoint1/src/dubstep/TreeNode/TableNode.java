@@ -143,6 +143,7 @@ public class TableNode extends TreeNode implements IntoTableVisitor {
     public String getAliasValue(){
         return this.aliasValue;
     }
+    public String getTableName(){return this.TableName;}
 
     /**
      * IntoTableVisitor

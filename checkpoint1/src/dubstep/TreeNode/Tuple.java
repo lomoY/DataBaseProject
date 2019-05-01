@@ -25,6 +25,9 @@ public class Tuple implements Serializable {
     public Map<String,PrimitiveValue> columnValues = new HashMap<>();//only for print out
    transient public List<Column> columnList = new ArrayList<>();
 
+    public Tuple(String row){
+
+    }
     public Tuple(){ }
 
     public Tuple(List<ColumnDefinition> columnDefinitions){}
