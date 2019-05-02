@@ -13,6 +13,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 import java.util.*;
+import java.util.function.Function;
+import java.util.function.ToDoubleFunction;
+import java.util.function.ToIntFunction;
+import java.util.function.ToLongFunction;
+
 import net.sf.jsqlparser.statement.create.table.Index;
 
 /**
@@ -71,7 +76,7 @@ public class IndexNode {
             int pos;
             PrimitiveValue key_val= null;
             for (String c : indexedColumns) {
-                TreeMap<PrimitiveValue, ArrayList<Long>> temp = new TreeMap<>();
+                TreeMap<PrimitiveValue, ArrayList<Long>> temp = new TreeMap<>(new KeyComparator());
                 while (raf.readLine() != null) {
 
                     long rowIndex = raf.getFilePointer();
@@ -89,6 +94,7 @@ public class IndexNode {
 
                     tempString = key_val;
                     System.out.println(tempString);
+
                     if (temp.containsKey(tempString)) {
                         ArrayList<Long> rowsList = temp.get(tempString);
                         rowsList.add(rowIndex);
@@ -111,6 +117,56 @@ public class IndexNode {
         catch (IOException e)
         {e.printStackTrace();}
         return indexes;
+    }
+
+    private class KeyComparator implements Comparator{
+        public KeyComparator() {
+        }
+
+        @Override
+        public Comparator reversed() {
+            return null;
+        }
+
+        @Override
+        public Comparator thenComparing(Comparator other) {
+            return null;
+        }
+
+        @Override
+        public Comparator thenComparing(Function keyExtractor, Comparator keyComparator) {
+            return null;
+        }
+
+        @Override
+        public Comparator thenComparing(Function keyExtractor) {
+            return null;
+        }
+
+        @Override
+        public Comparator thenComparingInt(ToIntFunction keyExtractor) {
+            return null;
+        }
+
+        @Override
+        public Comparator thenComparingLong(ToLongFunction keyExtractor) {
+            return null;
+        }
+
+        @Override
+        public Comparator thenComparingDouble(ToDoubleFunction keyExtractor) {
+            return null;
+        }
+
+        @Override
+        public int compare(Object o1, Object o2) {
+            if(o1.toString().equals(o2.toString())){
+                return 0;
+            }else {
+                return -1;
+            }
+        }
+
     }
 
 }
