@@ -13,9 +13,6 @@ import net.sf.jsqlparser.expression.Expression;
  */
 
 import dubstep.TreeNode.*;
-import net.sf.jsqlparser.expression.operators.relational.*;
-import net.sf.jsqlparser.statement.select.SubSelect;
-
 
 /**
  *
@@ -79,24 +76,25 @@ public class Optimizer{
 
                 TreeNode childOflftChild = lftChild.getLeftChildNode();
                 selectionNode.setLeftChildNode(childOflftChild);
-                lftChild.setLeftChildNode(selectionNode);
-                SelectionPushDown(selectionNode);
+                lftChild.setLeftChildNode(SelectionPushDown(selectionNode));
+
+                return lftChild;
 
             }else{
                 //index scan
                 Expression whereCondition = selectionNode.getWhereCondition();
 
-                RelationManager rm = new RelationManager(whereCondition);
-                TableNode tbn=(TableNode)lftChild;
-                String tableName = tbn.getTableName();
+                TableNode tn=(TableNode)lftChild;
+                String tableName = tn.getTableName();
+
+                RelationManager rm = new RelationManager(whereCondition,tableName);
+
+
 
                 IndexScan is = new IndexScan(tableName, rm.getColName(),rm.getLowerBound(),rm.getUpperBound(),false);
                 lftChild=is;
-                System.out.println(1);
+                return lftChild;
             }
-
-            return lftChild;
-
         }
 
         if(rhsChild!=null){

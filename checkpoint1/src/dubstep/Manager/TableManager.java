@@ -26,6 +26,7 @@ public class TableManager {
         TableMap.put(tableName,newTable);
         SchemaMap.put(tableName,newSchema);
         IndexNode newIndex= new IndexNode(createTable);
+        IndexMap.put(tableName,newIndex);
 //ALIIES Name
         return true;
     }

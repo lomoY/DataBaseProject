@@ -19,14 +19,16 @@ public class IndexScan extends TreeNode {
     TreeMap<PrimitiveValue, ArrayList<Long>> index;
 
     public IndexScan(String tableName, String colName, PrimitiveValue lowerBound, PrimitiveValue upperBound, boolean equals) {
+
         this.tableName= tableName;
         this.colName= colName;
         this.lowerBound= lowerBound;
         this.upperBound= upperBound;
         IndexNode id = TableManager.getIndex(tableName);
         TreeMap<String, TreeMap<PrimitiveValue, ArrayList<Long>>> indexCol=id.indexes;
-        this.index= indexCol.get(colName);
+//        this.index= indexCol.get(colName);
         this.TableFile= id.TableFile;
+
     }
 
     private class Itr implements Iterator<Tuple> {

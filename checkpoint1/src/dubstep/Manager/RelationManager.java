@@ -13,8 +13,10 @@ public class RelationManager implements ExpressionVisitor{
     PrimitiveValue lowerBound=null;
     PrimitiveValue upperBound=null;
     String colName;
+    String tableName;
 
-    public RelationManager(Expression expression) {
+    public RelationManager(Expression expression,String tableName) {
+        this.tableName=tableName;
         expression.accept(this);
     }
 
@@ -45,12 +47,17 @@ public class RelationManager implements ExpressionVisitor{
         Expression lfh = greaterThan.getLeftExpression();
         Expression rhs = greaterThan.getRightExpression();
 
-        if(lfh instanceof Column){
-            colName = ((Column) lfh).getWholeColumnName();
-        }
+        String whereTbName = ((Column) lfh).getTable().getName();
 
-        if(rhs instanceof PrimitiveValue){
-            lowerBound = (PrimitiveValue) rhs;
+        if(whereTbName.equals(this.tableName)){
+            if(lfh instanceof Column){
+                colName = ((Column) lfh).getWholeColumnName();
+
+            }
+
+            if(rhs instanceof PrimitiveValue){
+                lowerBound = (PrimitiveValue) rhs;
+            }
         }
     }
 
@@ -167,6 +174,11 @@ public class RelationManager implements ExpressionVisitor{
 
     @Override
     public void visit(AndExpression andExpression) {
+
+        Expression lhs= andExpression.getLeftExpression();
+        lhs.accept(this);
+        Expression rhs= andExpression.getRightExpression();
+        rhs.accept(this);
 
     }
 
