@@ -37,6 +37,7 @@ public class Optimizer{
     public void optimize(TreeNode treeNode){
 
         TreeNode lfhNode = treeNode.getLeftChildNode();
+
         if(treeNode.getLeftChildNode()!=null){
 
             if(treeNode.getLeftChildNode() instanceof SelectionNode){ //WhereNode
@@ -44,7 +45,9 @@ public class Optimizer{
                 treeNode.setLeftChildNode(SelectionPushDown((SelectionNode) treeNode.getLeftChildNode()));
 
             }else {
+
                 optimize(lfhNode);
+
             }
         }
     }
@@ -74,11 +77,26 @@ public class Optimizer{
 
             if(!(lftChild instanceof TableNode)){
 
-                TreeNode childOflftChild = lftChild.getLeftChildNode();
-                selectionNode.setLeftChildNode(childOflftChild);
-                lftChild.setLeftChildNode(SelectionPushDown(selectionNode));
+                if(lftChild instanceof JoinNode){
 
-                return lftChild;
+                    TreeNode childOfLhsChild = lftChild.getLeftChildNode();
+                    TreeNode childOfRhsChild = lftChild.getRightChildNode();
+
+                    selectionNode.setLeftChildNode(childOfLhsChild);
+                    lftChild.setLeftChildNode(SelectionPushDown(selectionNode));
+
+                    selectionNode.setLeftChildNode(childOfRhsChild);
+                    lftChild.setRightChildNode(SelectionPushDown(selectionNode));
+
+                }else{
+
+                    TreeNode childOflftChild = lftChild.getLeftChildNode();
+                    selectionNode.setLeftChildNode(childOflftChild);
+                    lftChild.setLeftChildNode(SelectionPushDown(selectionNode));
+
+                    return lftChild;
+                }
+
 
             }else{
                 //index scan
@@ -86,14 +104,12 @@ public class Optimizer{
 
                 TableNode tn=(TableNode)lftChild;
                 String tableName = tn.getTableName();
-
                 RelationManager rm = new RelationManager(whereCondition,tableName);
-
-
-
                 IndexScan is = new IndexScan(tableName, rm.getColName(),rm.getLowerBound(),rm.getUpperBound(),false);
                 lftChild=is;
+
                 return lftChild;
+
             }
         }
 

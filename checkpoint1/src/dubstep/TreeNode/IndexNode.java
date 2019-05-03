@@ -1,17 +1,13 @@
 package dubstep.TreeNode;
 
-import dubstep.Manager.EvaluatorManager;
 import net.sf.jsqlparser.expression.*;
-import net.sf.jsqlparser.schema.PrimitiveType;
 import net.sf.jsqlparser.statement.create.table.ColDataType;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 
 import java.io.*;
 import java.nio.file.Paths;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Scanner;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.ToDoubleFunction;
@@ -30,12 +26,14 @@ public class IndexNode {
     File TableFile;
     String TableName;
 
+
     public IndexNode(CreateTable createTable) {
 
         this.TableName = createTable.getTable().getName();
 //          this.TableFile = Paths.get("data",TableName+".csv").toFile();
 //        this.TableFile = Paths.get("G:/UB/Spring'19/DB/cse562-master/DataBaseProject_1/checkpoint1/test/NBA_Examples", "PLAYERS.csv").toFile();
-        this.TableFile=Paths.get("data",TableName+".csv").toFile();
+        this.TableFile = Paths.get("data",TableName+".csv").toFile();
+
         this.indexes = getIndex(createTable);
 
     }
@@ -50,23 +48,24 @@ public class IndexNode {
         List<String> indexedColumns = new ArrayList<>();
 
 
-        if (indices != null) {
-            for (Index i : indices) {
-                for (String colname : i.getColumnsNames()) {
-                    indexedColumns.add(colname);
-                }
-            }
-        }
-//        System.out.println("Indexed Columns " + indexedColumns);
+//        if (indices != null) {
+//            for (Index i : indices) {
+//                for (String colname : i.getColumnsNames()) {
+//                    indexedColumns.add(colname);
+//                }
+//            }
+//        }
+
 
         //          Assigning col positions
         int position = 0;
         for (ColumnDefinition c : createTable.getColumnDefinitions()) {
             colPos.put(c.getColumnName(), position);
             colDef.put(c.getColumnName(), c.getColDataType());
+            indexedColumns.add(c.getColumnName());
             position++;
         }
-
+        System.out.println("Indexed Columns " + indexedColumns);
         try {
             br = new BufferedReader(new FileReader(IndexNode.this.TableFile));
             raf=  new RandomAccessFile(IndexNode.this.TableFile, "rw");
@@ -76,11 +75,11 @@ public class IndexNode {
             int pos;
             PrimitiveValue key_val= null;
             for (String c : indexedColumns) {
+                raf=  new RandomAccessFile(IndexNode.this.TableFile, "rw");
                 TreeMap<PrimitiveValue, ArrayList<Long>> temp = new TreeMap<>(new KeyComparator());
                 while (raf.readLine() != null) {
-
                     long rowIndex = raf.getFilePointer();
-                    rows = br.readLine().split("\\|");
+                    rows = raf.readLine().split("\\|");
                     pos = colPos.get(c);
 //                    PrimitiveValue key_val= new StringValue(rows[pos]);
                     if(colDef.get(c).getDataType().equalsIgnoreCase("string"))
@@ -90,7 +89,7 @@ public class IndexNode {
                     if(colDef.get(c).getDataType().equalsIgnoreCase("int"))
                         key_val= new LongValue(rows[pos]);
                     if(colDef.get(c).getDataType().equalsIgnoreCase("date"))
-                        key_val= new TimeValue(rows[pos]);
+                        key_val= new DateValue(rows[pos]);
 
                     tempString = key_val;
                     System.out.println(tempString);
@@ -160,41 +159,32 @@ public class IndexNode {
 
         @Override
         public int compare(Object o1, Object o2) {
-            if(o1.toString().equals(o2.toString())){
-                return 0;
-            }else {
-                return -1;
+            if(o1 instanceof StringValue ||o2 instanceof StringValue )
+            {
+                if(o1.toString().equals(o2.toString())){
+                    return 0;
+                }else {
+                    return -1;
+                }
             }
+            if(o1 instanceof LongValue)
+            {
+                if(((LongValue) o1).toLong() == ((LongValue) o2).toLong()){
+                    return 0;
+                }else {
+                    return -1;
+                }
+            }
+            if(o1 instanceof DoubleValue) {
+                if (((DoubleValue) o1).toDouble() == ((DoubleValue) o2).toDouble()) {
+                    return 0;
+                } else {
+                    return -1;
+                }
+            }
+            return 0;
         }
 
     }
 
 }
-
-
-
-
-
-//
-//
-//    private class Itr implements Iterator<Tuple> {
-//        public Itr() {
-//
-//        }
-//        @Override
-//        public Tuple next() {
-//            Tuple tp = new Tuple();
-//            return tp;
-//        }
-//        @Override
-//        public boolean hasNext() {
-//            return true;
-//        }
-//        @Override
-//        public void remove() {
-//        }
-//        @Override
-//        public void forEachRemaining(Consumer action) {}
-//
-//    }
-//}
