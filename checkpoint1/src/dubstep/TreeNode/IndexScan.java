@@ -17,7 +17,9 @@ public class IndexScan extends TreeNode {
     PrimitiveValue upperBound;
     File TableFile;
     TreeMap<PrimitiveValue, ArrayList<Long>> index;
+
     public IndexScan(String tableName, String colName, PrimitiveValue lowerBound, PrimitiveValue upperBound, boolean equals) {
+
         this.tableName= tableName;
         this.colName= colName;
         this.lowerBound= lowerBound;
@@ -26,6 +28,7 @@ public class IndexScan extends TreeNode {
         TreeMap<String, TreeMap<PrimitiveValue, ArrayList<Long>>> indexCol=id.indexes;
         this.index= indexCol.get(colName);
         this.TableFile= id.TableFile;
+
     }
 
     private class Itr implements Iterator<Tuple> {
@@ -44,7 +47,6 @@ public class IndexScan extends TreeNode {
             for(Map.Entry<PrimitiveValue, ArrayList<Long>> node: IndexScan.this.index.entrySet())
             {
                 //condition for key-- if key < lowerbound,
-
                 PrimitiveValue key= node.getKey();
                 ArrayList<Long> rowPos = node.getValue();
                 for(Long i : rowPos)
@@ -67,8 +69,9 @@ public class IndexScan extends TreeNode {
                 returntp= new Tuple(row);
                 return returntp;
             }
-            catch (FileNotFoundException e) {}
-            catch (IOException e) {}
+
+//            catch (FileNotFoundException e) {}
+            catch (IOException e) {}//here is only one try, but why two catch?
             return returntp;
         }
         @Override
