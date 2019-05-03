@@ -67,7 +67,6 @@ public class IndexScan extends TreeNode {
                 returntp= new Tuple(row);
                 return returntp;
             }
-
             catch (FileNotFoundException e) {}
             catch (IOException e) {}
             return returntp;
