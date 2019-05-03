@@ -51,7 +51,9 @@ public class RelationManager implements ExpressionVisitor{
 
         if(whereTbName.equals(this.tableName)){
             if(lfh instanceof Column){
-                colName = ((Column) lfh).getWholeColumnName();
+//                colName = ((Column) lfh).getWholeColumnName();
+                colName = ((Column) lfh).getColumnName();
+
 
             }
 

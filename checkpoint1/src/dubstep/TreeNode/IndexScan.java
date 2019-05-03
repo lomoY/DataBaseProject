@@ -2,7 +2,11 @@ package dubstep.TreeNode;
 
 
 import dubstep.Manager.TableManager;
-import net.sf.jsqlparser.expression.PrimitiveValue;
+import net.sf.jsqlparser.expression.*;
+import net.sf.jsqlparser.schema.Column;
+import net.sf.jsqlparser.schema.Table;
+import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
+import net.sf.jsqlparser.statement.create.table.Index;
 
 import java.util.*;
 import java.io.*;
@@ -11,12 +15,16 @@ import java.util.function.Consumer;
 
 
 public class IndexScan extends TreeNode {
+
     String tableName;
+    String aliasValue;
+    File TableFile;
+    Table TableObj;
     String colName;
     PrimitiveValue lowerBound;
     PrimitiveValue upperBound;
-    File TableFile;
     TreeMap<PrimitiveValue, ArrayList<Long>> index;
+    List<ColumnDefinition> columnDefinitions;
 
     public IndexScan(String tableName, String colName, PrimitiveValue lowerBound, PrimitiveValue upperBound, boolean equals) {
 
@@ -33,10 +41,18 @@ public class IndexScan extends TreeNode {
 
     private class Itr implements Iterator<Tuple> {
         Iterator<Tuple> lfItr;
-        Tuple lftuple;
+//        Tuple lftuple;
+        String lftuple;
         BufferedReader br;
         RandomAccessFile raf;
+
         public Itr() {
+
+            Schema schema = TableManager.getSchema(IndexScan.this.tableName);
+
+            columnDefinitions = schema.getColumnDefinitions();
+
+
             try
             {
                 raf=  new RandomAccessFile(IndexScan.this.TableFile, "rw");
@@ -57,27 +73,72 @@ public class IndexScan extends TreeNode {
             }
         }
 
-        public Tuple returnRow(Long i)
-        {
-            Tuple returntp= new Tuple();
-            try
-            {
+        public String returnRow(Long i) {
+
+//            Tuple returntp= new Tuple();
+            String row="";
+
+            try {
+
                 raf.seek(i);
-                String row= raf.readLine();
+                row= raf.readLine();
                 //Zhenyu PLEASE LOOK INTO THIS!!
                 //convert this string to tuple and return;
-                returntp= new Tuple(row);
-                return returntp;
-            }
+//                returntp= new Tuple(row);
+//                return returntp;
+                return row;
+                }
+                catch (IOException e) {}
 
-//            catch (FileNotFoundException e) {}
-            catch (IOException e) {}//here is only one try, but why two catch?
-            return returntp;
+//            return returntp;
+            return row;
         }
+
         @Override
         public Tuple next() {
+
+            try {
+
+                Tuple tp = new Tuple(columnDefinitions);
+                String[] columnValues = lftuple.split("\\|");
+
+                for(int i =0;i<columnValues.length;i++){
+
+                    Table tb = IndexScan.this.TableObj;
+                    if(IndexScan.this.aliasValue!=null){
+                        tb.setName(aliasValue);
+                    }
+
+                    Column column = new Column(IndexScan.this.TableObj,columnDefinitions.get(i).getColumnName().toString());
+                    String colDataType = columnDefinitions.get(i).getColDataType().toString();
+                    switch (colDataType) {
+                        case "int":
+                            tp.setColumn(column, new LongValue(Long.parseLong(columnValues[i])));
+                            break;
+                        case "decimal":
+                            tp.setColumn(column, new DoubleValue(Double.parseDouble(columnValues[i])));
+                            break;
+                        case "date":
+                            tp.setColumn(column, new DateValue(columnValues[i]));
+                            break;
+                        case "varchar":
+                        case "char":
+                        case "string":
+                            tp.setColumn(column, new StringValue(columnValues[i]));
+                            break;
+                        default:
+                            tp.setColumn(column, new NullValue());
+                    }
+                }
+                return tp;
+
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
             return null;
         }
+
         @Override
         public void remove() {}
 
