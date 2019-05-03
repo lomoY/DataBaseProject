@@ -39,6 +39,10 @@ public class TableNode extends TreeNode implements IntoTableVisitor {
 
     }
 
+    public Table getTableObj() {
+        return TableObj;
+    }
+
     private class Itr implements Iterator<Tuple> {
 
         BufferedReader br;

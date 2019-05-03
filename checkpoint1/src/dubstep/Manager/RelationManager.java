@@ -76,7 +76,27 @@ public class RelationManager implements ExpressionVisitor{
 
     @Override
     public void visit(EqualsTo equalsTo) {
+        Expression lfh = equalsTo.getLeftExpression();
+        Expression rhs = equalsTo.getRightExpression();
 
+        String whereTbName = ((Column) lfh).getTable().getName();
+
+        if(whereTbName.equals(this.tableName)){
+            if(lfh instanceof Column){
+//                colName = ((Column) lfh).getWholeColumnName();
+                colName = ((Column) lfh).getColumnName();
+
+
+            }
+
+            if(rhs instanceof PrimitiveValue){
+                try{
+                    equals = ((PrimitiveValue) rhs).toBool();
+                }catch (PrimitiveValue.InvalidPrimitive e){
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     @Override
@@ -102,7 +122,24 @@ public class RelationManager implements ExpressionVisitor{
 
     @Override
     public void visit(GreaterThanEquals greaterThanEquals) {
+        Expression lfh = greaterThanEquals.getLeftExpression();
+        Expression rhs = greaterThanEquals.getRightExpression();
 
+        String whereTbName = ((Column) lfh).getTable().getName();
+
+        if(whereTbName.equals(this.tableName)){
+            if(lfh instanceof Column){
+//                colName = ((Column) lfh).getWholeColumnName();
+                colName = ((Column) lfh).getColumnName();
+
+
+            }
+
+            if(rhs instanceof PrimitiveValue){
+                lowerBound = (PrimitiveValue) rhs;
+                softLowerBound=true;
+            }
+        }
     }
 
     @Override
@@ -122,11 +159,48 @@ public class RelationManager implements ExpressionVisitor{
 
     @Override
     public void visit(MinorThan minorThan) {
+        Expression lfh = minorThan.getLeftExpression();
+        Expression rhs = minorThan.getRightExpression();
 
+        String whereTbName = ((Column) lfh).getTable().getName();
+
+        if(whereTbName.equals(this.tableName)){
+            if(lfh instanceof Column){
+//                colName = ((Column) lfh).getWholeColumnName();
+                colName = ((Column) lfh).getColumnName();
+
+
+            }
+
+            if(rhs instanceof PrimitiveValue){
+                upperBound = (PrimitiveValue) rhs;
+            }
+        }
     }
 
     @Override
     public void visit(MinorThanEquals minorThanEquals) {
+
+        Expression lfh = minorThanEquals.getLeftExpression();
+        Expression rhs = minorThanEquals.getRightExpression();
+
+        String whereTbName = ((Column) lfh).getTable().getName();
+
+        if(whereTbName.equals(this.tableName)){
+
+            if(lfh instanceof Column){
+
+                colName = ((Column) lfh).getColumnName();
+
+            }
+
+            if(rhs instanceof PrimitiveValue){
+
+                upperBound = (PrimitiveValue) rhs;
+                softUpperBound=true;
+
+            }
+        }
 
     }
 

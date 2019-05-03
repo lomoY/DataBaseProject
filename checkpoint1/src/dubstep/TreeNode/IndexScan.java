@@ -20,7 +20,7 @@ public class IndexScan extends TreeNode {
     String tableName;
     String aliasValue;
     File TableFile;
-    Table TableObj;
+    Table tableObj;
     String colName;
     PrimitiveValue lowerBound;
     PrimitiveValue upperBound;
@@ -30,9 +30,11 @@ public class IndexScan extends TreeNode {
     TreeMap<PrimitiveValue, ArrayList<Long>> index;
     List<ColumnDefinition> columnDefinitions;
 
+
     public IndexScan(String tableName, String colName, PrimitiveValue lowerBound, PrimitiveValue upperBound, boolean equals, boolean softLowerBound, boolean softUpperBound) {
 
         this.tableName= tableName;
+        this.tableObj = TableManager.getTable(this.tableName).getTableObj();
         this.colName= colName;
         this.lowerBound= lowerBound;
         this.upperBound= upperBound;
@@ -52,6 +54,7 @@ public class IndexScan extends TreeNode {
         String lftuple;
         BufferedReader br;
         RandomAccessFile raf;
+        Iterator rowPosItr;
 
         public Itr() {
 
@@ -242,6 +245,7 @@ public class IndexScan extends TreeNode {
                     if (getrow==true)
                     {
                         ArrayList<Long> rowPos = node.getValue();
+                        this.rowPosItr=rowPos.iterator();
                         for(Long i : rowPos){
                             String row= returnRow(i);
                             Tuple returntp= new Tuple(row);
@@ -277,19 +281,20 @@ public class IndexScan extends TreeNode {
         @Override
         public Tuple next() {
 
+            String row= returnRow((Long)rowPosItr.next());
             try {
 
                 Tuple tp = new Tuple(columnDefinitions);
-                String[] columnValues = lftuple.split("\\|");
+                String[] columnValues = row.split("\\|");
 
                 for(int i =0;i<columnValues.length;i++){
 
-                    Table tb = IndexScan.this.TableObj;
+                    Table tb = IndexScan.this.tableObj;
                     if(IndexScan.this.aliasValue!=null){
                         tb.setName(aliasValue);
                     }
 
-                    Column column = new Column(IndexScan.this.TableObj,columnDefinitions.get(i).getColumnName().toString());
+                    Column column = new Column(IndexScan.this.tableObj,columnDefinitions.get(i).getColumnName().toString());
                     String colDataType = columnDefinitions.get(i).getColDataType().toString();
                     switch (colDataType) {
                         case "int":
@@ -327,10 +332,10 @@ public class IndexScan extends TreeNode {
 
         @Override
         public boolean hasNext() {
-            if (lfItr.hasNext()) {
-                return true;
-            } else {
 
+            if(rowPosItr!=null&&rowPosItr.hasNext()){
+                return true;
+            }else {
                 return false;
             }
         }
@@ -351,6 +356,6 @@ public class IndexScan extends TreeNode {
 
     @Override
     public Iterator<Tuple> iterator() {
-        return new IndexScan.Itr();
+        return new Itr();
     }
 }

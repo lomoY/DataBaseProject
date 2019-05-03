@@ -66,7 +66,7 @@ public class IndexNode {
             indexedColumns.add(c.getColumnName());
             position++;
         }
-        System.out.println("Indexed Columns " + indexedColumns);
+//        System.out.println("Indexed Columns " + indexedColumns);
         try {
             br = new BufferedReader(new FileReader(IndexNode.this.TableFile));
             raf=  new RandomAccessFile(IndexNode.this.TableFile, "rw");
@@ -93,12 +93,12 @@ public class IndexNode {
                         key_val= new DateValue(rows[pos]);
 
                     tempString = key_val;
-                    System.out.println(tempString);
+//                    System.out.println(tempString);
 
                     if (temp.containsKey(tempString)) {
                         ArrayList<Long> rowsList = temp.get(tempString);
                         rowsList.add(rowIndex);
-                        System.out.println(rowsList);
+//                        System.out.println(rowsList);
                     } else {
                         ArrayList<Long> tempVal = new ArrayList<>();
                         tempVal.add(rowIndex);
