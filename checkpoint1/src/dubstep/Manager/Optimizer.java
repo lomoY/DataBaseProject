@@ -105,7 +105,20 @@ public class Optimizer{
                 TableNode tn=(TableNode)lftChild;
                 String tableName = tn.getTableName();
                 RelationManager rm = new RelationManager(whereCondition,tableName);
-                IndexScan is = new IndexScan(tableName, rm.getColName(),rm.getLowerBound(),rm.getUpperBound(),false);
+
+                /**
+                 *
+                 * String tableName,
+                 * String colName,
+                 * PrimitiveValue lowerBound,
+                 * PrimitiveValue upperBound,
+                 * boolean equals,
+                 * boolean softLowerBound,
+                 * boolean softUpperBound
+                 *
+                 */
+
+                IndexScan is = new IndexScan(tableName, rm.getColName(),rm.getLowerBound(),rm.getUpperBound(),rm.getEquals(),rm.getSoftLowerBound(),rm.getSoftUpperBound());
                 lftChild=is;
 
                 return lftChild;

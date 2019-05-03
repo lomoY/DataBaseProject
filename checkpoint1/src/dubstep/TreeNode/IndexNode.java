@@ -1,13 +1,17 @@
 package dubstep.TreeNode;
 
+import dubstep.Manager.EvaluatorManager;
 import net.sf.jsqlparser.expression.*;
+import net.sf.jsqlparser.schema.PrimitiveType;
 import net.sf.jsqlparser.statement.create.table.ColDataType;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
 
 import java.io.*;
 import java.nio.file.Paths;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Scanner;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.ToDoubleFunction;
@@ -26,14 +30,11 @@ public class IndexNode {
     File TableFile;
     String TableName;
 
-
     public IndexNode(CreateTable createTable) {
 
         this.TableName = createTable.getTable().getName();
-//          this.TableFile = Paths.get("data",TableName+".csv").toFile();
+          this.TableFile = Paths.get("data",TableName+".csv").toFile();
 //        this.TableFile = Paths.get("G:/UB/Spring'19/DB/cse562-master/DataBaseProject_1/checkpoint1/test/NBA_Examples", "PLAYERS.csv").toFile();
-        this.TableFile = Paths.get("data",TableName+".csv").toFile();
-
         this.indexes = getIndex(createTable);
 
     }
@@ -159,7 +160,7 @@ public class IndexNode {
 
         @Override
         public int compare(Object o1, Object o2) {
-            if(o1 instanceof StringValue ||o2 instanceof StringValue )
+            if(o1 instanceof StringValue ||o2 instanceof StringValue || o1 instanceof DateValue )
             {
                 if(o1.toString().equals(o2.toString())){
                     return 0;

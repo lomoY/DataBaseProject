@@ -8,10 +8,31 @@ import net.sf.jsqlparser.expression.operators.relational.*;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.select.SubSelect;
 
+/**
+ *
+ * @author Lomo
+ *
+ */
+
 public class RelationManager implements ExpressionVisitor{
 
-    PrimitiveValue lowerBound=null;
-    PrimitiveValue upperBound=null;
+    /**
+     *
+     * String tableName,
+     * String colName,
+     * PrimitiveValue lowerBound,
+     * PrimitiveValue upperBound,
+     * boolean equals,
+     * boolean softLowerBound,
+     * boolean softUpperBound
+     *
+     */
+
+    PrimitiveValue lowerBound = null;
+    PrimitiveValue upperBound = null;
+    boolean softLowerBound=false;
+    boolean softUpperBound=false;
+    boolean equals;
     String colName;
     String tableName;
 
@@ -30,6 +51,22 @@ public class RelationManager implements ExpressionVisitor{
 
     public PrimitiveValue getUpperBound() {
         return upperBound;
+    }
+
+    public boolean getSoftLowerBound() {
+        return softLowerBound;
+    }
+
+    public boolean getSoftUpperBound() {
+        return softUpperBound;
+    }
+
+    public boolean getEquals() {
+        return equals;
+    }
+
+    public String getTableName() {
+        return tableName;
     }
 
     @Override
