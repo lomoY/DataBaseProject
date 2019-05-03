@@ -51,7 +51,14 @@ public class JoinNode extends TreeNode {
         public boolean hasNext() {
             if (lfItr.hasNext()) {
                 return true;
-            } else {
+            } else if(!lfItr.hasNext()){
+
+                if(rgItr.hasNext()==true){
+                    return true;
+                }else{
+                    return false;
+                }
+            }else {
 
                 return false;
             }

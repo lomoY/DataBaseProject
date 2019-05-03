@@ -13,6 +13,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 import java.util.*;
+import java.util.function.Function;
+import java.util.function.ToDoubleFunction;
+import java.util.function.ToIntFunction;
+import java.util.function.ToLongFunction;
+
 import net.sf.jsqlparser.statement.create.table.Index;
 
 /**
@@ -70,15 +75,15 @@ public class IndexNode {
             int pos;
             PrimitiveValue key_val= null;
             for (String c : indexedColumns) {
-                TreeMap<PrimitiveValue, ArrayList<Long>> temp = new TreeMap<>();
+                raf=  new RandomAccessFile(IndexNode.this.TableFile, "rw");
+                TreeMap<PrimitiveValue, ArrayList<Long>> temp = new TreeMap<>(new KeyComparator());
                 while (raf.readLine() != null) {
-
                     long rowIndex = raf.getFilePointer();
-                    rows = br.readLine().split("\\|");
+                    rows = raf.readLine().split("\\|");
                     pos = colPos.get(c);
 //                    PrimitiveValue key_val= new StringValue(rows[pos]);
                     if(colDef.get(c).getDataType().equalsIgnoreCase("string"))
-                            key_val= new StringValue(rows[pos]);
+                        key_val= new StringValue(rows[pos]);
                     if(colDef.get(c).getDataType().equalsIgnoreCase("double"))
                         key_val= new DoubleValue(rows[pos]);
                     if(colDef.get(c).getDataType().equalsIgnoreCase("int"))
@@ -88,6 +93,7 @@ public class IndexNode {
 
                     tempString = key_val;
                     System.out.println(tempString);
+
                     if (temp.containsKey(tempString)) {
                         ArrayList<Long> rowsList = temp.get(tempString);
                         rowsList.add(rowIndex);
@@ -112,32 +118,73 @@ public class IndexNode {
         return indexes;
     }
 
+    private class KeyComparator implements Comparator{
+        public KeyComparator() {
+        }
+
+        @Override
+        public Comparator reversed() {
+            return null;
+        }
+
+        @Override
+        public Comparator thenComparing(Comparator other) {
+            return null;
+        }
+
+        @Override
+        public Comparator thenComparing(Function keyExtractor, Comparator keyComparator) {
+            return null;
+        }
+
+        @Override
+        public Comparator thenComparing(Function keyExtractor) {
+            return null;
+        }
+
+        @Override
+        public Comparator thenComparingInt(ToIntFunction keyExtractor) {
+            return null;
+        }
+
+        @Override
+        public Comparator thenComparingLong(ToLongFunction keyExtractor) {
+            return null;
+        }
+
+        @Override
+        public Comparator thenComparingDouble(ToDoubleFunction keyExtractor) {
+            return null;
+        }
+
+        @Override
+        public int compare(Object o1, Object o2) {
+            if(o1 instanceof StringValue ||o2 instanceof StringValue )
+            {
+                if(o1.toString().equals(o2.toString())){
+                    return 0;
+                }else {
+                    return -1;
+                }
+            }
+            if(o1 instanceof LongValue)
+            {
+                if(((LongValue) o1).toLong() == ((LongValue) o2).toLong()){
+                    return 0;
+                }else {
+                    return -1;
+                }
+            }
+            if(o1 instanceof DoubleValue) {
+                if (((DoubleValue) o1).toDouble() == ((DoubleValue) o2).toDouble()) {
+                    return 0;
+                } else {
+                    return -1;
+                }
+            }
+            return 0;
+        }
+
+    }
+
 }
-
-
-
-
-
-//
-//
-//    private class Itr implements Iterator<Tuple> {
-//        public Itr() {
-//
-//        }
-//        @Override
-//        public Tuple next() {
-//            Tuple tp = new Tuple();
-//            return tp;
-//        }
-//        @Override
-//        public boolean hasNext() {
-//            return true;
-//        }
-//        @Override
-//        public void remove() {
-//        }
-//        @Override
-//        public void forEachRemaining(Consumer action) {}
-//
-//    }
-//}

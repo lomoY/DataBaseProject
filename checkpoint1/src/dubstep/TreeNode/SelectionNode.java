@@ -77,4 +77,7 @@ public class SelectionNode  extends TreeNode {
         return new Itr();
     }
 
+    public Expression getWhereCondition() {
+        return whereCondition;
+    }
 }
