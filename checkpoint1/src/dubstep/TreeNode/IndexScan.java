@@ -65,7 +65,7 @@ public class IndexScan extends TreeNode {
 
             try
             {
-                raf=  new RandomAccessFile(IndexScan.this.TableFile, "rw");
+                raf=  new RandomAccessFile(IndexScan.this.TableFile, "r");
 
                 for(Map.Entry<PrimitiveValue, ArrayList<Long>> node: IndexScan.this.index.entrySet())
                 {

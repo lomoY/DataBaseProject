@@ -69,14 +69,14 @@ public class IndexNode {
 //        System.out.println("Indexed Columns " + indexedColumns);
         try {
             br = new BufferedReader(new FileReader(IndexNode.this.TableFile));
-            raf=  new RandomAccessFile(IndexNode.this.TableFile, "rw");
+            raf=  new RandomAccessFile(IndexNode.this.TableFile, "r");
             PrimitiveValue tempString;
             String[] rows;
 //          index creation
             int pos;
             PrimitiveValue key_val= null;
             for (String c : indexedColumns) {
-                raf=  new RandomAccessFile(IndexNode.this.TableFile, "rw");
+                raf=  new RandomAccessFile(IndexNode.this.TableFile, "r");
                 TreeMap<PrimitiveValue, ArrayList<Long>> temp = new TreeMap<>(new KeyComparator());
                 while (raf.readLine() != null) {
                     long rowIndex = raf.getFilePointer();
