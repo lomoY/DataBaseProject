@@ -33,8 +33,8 @@ public class IndexNode {
     public IndexNode(CreateTable createTable) {
 
         this.TableName = createTable.getTable().getName();
-          this.TableFile = Paths.get("data",TableName+".csv").toFile();
-//        this.TableFile = Paths.get("G:/UB/Spring'19/DB/cse562-master/DataBaseProject_1/checkpoint1/test/NBA_Examples", "PLAYERS.csv").toFile();
+//          this.TableFile = Paths.get("data",TableName+".csv").toFile();
+        this.TableFile = Paths.get("G:/UB/Spring'19/DB/cse562-master/DataBaseProject_1/checkpoint1/test/NBA_Examples", "PLAYERS.csv").toFile();
         this.indexes = getIndex(createTable);
 
     }
@@ -49,13 +49,13 @@ public class IndexNode {
         List<String> indexedColumns = new ArrayList<>();
 
 
-//        if (indices != null) {
-//            for (Index i : indices) {
-//                for (String colname : i.getColumnsNames()) {
-//                    indexedColumns.add(colname);
-//                }
-//            }
-//        }
+        if (indices != null) {
+            for (Index i : indices) {
+                for (String colname : i.getColumnsNames()) {
+                    indexedColumns.add(colname);
+                }
+            }
+        }
 
 
         //          Assigning col positions
@@ -69,7 +69,7 @@ public class IndexNode {
 //        System.out.println("Indexed Columns " + indexedColumns);
         try {
             br = new BufferedReader(new FileReader(IndexNode.this.TableFile));
-            raf=  new RandomAccessFile(IndexNode.this.TableFile, "rw");
+            raf=  new RandomAccessFile(IndexNode.this.TableFile, "r");
             PrimitiveValue tempString;
             String[] rows;
 //          index creation
