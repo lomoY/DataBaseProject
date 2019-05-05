@@ -14,6 +14,8 @@ import net.sf.jsqlparser.expression.Expression;
 
 import dubstep.TreeNode.*;
 
+import java.util.Set;
+
 /**
  *
  * Pattern
@@ -119,7 +121,12 @@ public class Optimizer{
                  */
 
                 IndexScan is = new IndexScan(tableName, rm.getColName(),rm.getLowerBound(),rm.getUpperBound(),rm.getEquals(),rm.getSoftLowerBound(),rm.getSoftUpperBound());
-                lftChild=is;
+                Set<String> keySet=is.getIndexes();
+
+                if(keySet.contains(rm.getColName())){
+
+                    lftChild=is;
+                }
 
                 return lftChild;
 

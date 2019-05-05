@@ -8,6 +8,7 @@ import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.Index;
 
+import java.lang.reflect.Array;
 import java.util.*;
 import java.io.*;
 import java.nio.file.Paths;
@@ -44,8 +45,26 @@ public class IndexScan extends TreeNode {
         IndexNode id = TableManager.getIndex(tableName);
         TreeMap<String, TreeMap<PrimitiveValue, ArrayList<Long>>> indexCol=id.indexes;
         this.index= indexCol.get(colName);
+//        System.out.println(isIndex(this.index));
         this.TableFile= id.TableFile;
 
+    }
+
+    public boolean isIndex(TreeMap<PrimitiveValue, ArrayList<Long>> index)
+    {
+        if (index ==null)
+        {
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+    }
+    public Set<String> getIndexes(){
+        IndexNode id = TableManager.getIndex(IndexScan.this.tableName);
+        TreeMap<String, TreeMap<PrimitiveValue, ArrayList<Long>>> indexCol=id.indexes;
+        return indexCol.keySet();
     }
 
     private class Itr implements Iterator<Tuple> {
@@ -61,203 +80,63 @@ public class IndexScan extends TreeNode {
             Schema schema = TableManager.getSchema(IndexScan.this.tableName);
 
             columnDefinitions = schema.getColumnDefinitions();
-
-
+            SortedMap <PrimitiveValue, ArrayList<Long>> sortedMap = new TreeMap<>();
+            //>
+            if(upperBound==null && !softLowerBound && lowerBound!=null)
+            {
+                sortedMap= IndexScan.this.index.tailMap(lowerBound);
+            }
+            //>=
+            else if (upperBound== null && softLowerBound && lowerBound!=null)
+            {
+                sortedMap= IndexScan.this.index.tailMap(lowerBound, true);
+            }
+            //<
+            else if (lowerBound== null && !softUpperBound && upperBound!=null)
+            {
+                sortedMap= IndexScan.this.index.headMap(upperBound);
+            }
+            else if (lowerBound == null && softUpperBound && upperBound!=null)
+            {
+                sortedMap= IndexScan.this.index.headMap(upperBound, true);
+            }
+            else  if (softUpperBound && softLowerBound && upperBound !=null && lowerBound != null)
+            {
+                sortedMap= IndexScan.this.index.subMap(lowerBound, true, upperBound, true);
+            }
+            else if (softUpperBound && !softLowerBound && upperBound !=null && lowerBound != null)
+            {
+                sortedMap= IndexScan.this.index.subMap(lowerBound, false, upperBound, true);
+            }
+            else if (!softUpperBound && softLowerBound && upperBound !=null && lowerBound != null)
+            {
+                sortedMap= IndexScan.this.index.subMap(lowerBound, true, upperBound, false);
+            }
+            else if (!softUpperBound && !softLowerBound && upperBound !=null && lowerBound != null)
+            {
+                sortedMap= IndexScan.this.index.subMap(lowerBound, false, upperBound, false);
+            }
+            else if(equalsBound)
+            {
+                sortedMap= IndexScan.this.index.subMap(lowerBound, true, lowerBound, true);
+            }
+            System.out.println( sortedMap.entrySet());
             try
             {
                 raf=  new RandomAccessFile(IndexScan.this.TableFile, "r");
-
-                for(Map.Entry<PrimitiveValue, ArrayList<Long>> node: IndexScan.this.index.entrySet())
+                for(Map.Entry<PrimitiveValue, ArrayList<Long>> node: sortedMap.entrySet())
                 {
-                    //equal condition like age=10
-                    boolean getrow = false;
-                    if (IndexScan.this.equalsBound) {
-                        if (node.getKey() == lowerBound) {
-                            getrow=true;
-                        }
-                    }
-                    //age<10 or age<=10
-                    else if(IndexScan.this.lowerBound== null)
-                    {
-                        if(IndexScan.this.softUpperBound)
-                        {
-                            if(node.getKey()instanceof StringValue ||node.getKey()instanceof DateValue )
-                            {
-                                if(node.getKey().toString().compareToIgnoreCase(upperBound.toString())==-1 ||node.getKey().toString().compareToIgnoreCase(upperBound.toString())==0)
-                                {
-                                    getrow=true;
-                                }
-                            }
-                            else if(node.getKey() instanceof LongValue)
-                            {
-                                if(node.getKey().toLong()<=upperBound.toLong()){getrow=true;}
-                            }
-                            else if (node.getKey() instanceof DoubleValue)
-                            {
-                                if(node.getKey().toDouble()<=upperBound.toDouble()){getrow=true;}
-                            }
-                        }
-                        else //tight bound
-                        {
-                            if(node.getKey()instanceof StringValue ||node.getKey()instanceof DateValue )
-                            {
-                                if(node.getKey().toString().compareToIgnoreCase(upperBound.toString())==-1)
-                                {
-                                    getrow=true;
-                                }
-                            }
-                            else if(node.getKey() instanceof LongValue)
-                            {
-                                if(node.getKey().toLong()<upperBound.toLong()){getrow=true;}
-                            }
-                            else if (node.getKey() instanceof DoubleValue)
-                            {
-                                if(node.getKey().toDouble()<upperBound.toDouble()){getrow=true;}
-                            }
-                        }
-                    }
-                    // age > 10 or age>=10
-                    else if(IndexScan.this.upperBound== null)
-                    {
-                        if(IndexScan.this.softLowerBound)
-                        {
-                            if(node.getKey()instanceof StringValue ||node.getKey()instanceof DateValue )
-                            {
-                                if(node.getKey().toString().compareToIgnoreCase(lowerBound.toString())==1 ||node.getKey().toString().compareToIgnoreCase(lowerBound.toString())==0)
-                                {
-                                    getrow=true;
-                                }
-                            }
-                            else if(node.getKey() instanceof LongValue)
-                            {
-                                if(node.getKey().toLong()>=lowerBound.toLong()){getrow=true;}
-                            }
-                            else if (node.getKey() instanceof DoubleValue)
-                            {
-                                if(node.getKey().toDouble()>=lowerBound.toDouble()){getrow=true;}
-                            }
-                        }
-                        else //tight bound
-                        {
-                            if(node.getKey()instanceof StringValue ||node.getKey()instanceof DateValue )
-                            {
-                                if(node.getKey().toString().compareToIgnoreCase(lowerBound.toString())==1)
-                                {
-                                    getrow=true;
-                                }
-                            }
-                            else if(node.getKey() instanceof LongValue)
-                            {
-                                if(node.getKey().toLong()>lowerBound.toLong()){getrow=true;}
-                            }
-                            else if (node.getKey() instanceof DoubleValue)
-                            {
-                                if(node.getKey().toDouble()>lowerBound.toDouble()){getrow=true;}
-                            }
-                        }
-                    }
-                    // age<10 and age > 5 or age <=10 and age >=5
-                    else
-                    {
-                        // <= and >=
-                        if(IndexScan.this.softLowerBound && IndexScan.this.softUpperBound )
-                        {
-                            if(node.getKey()instanceof StringValue ||node.getKey()instanceof DateValue )
-                            {
-                                int string_com_lower= node.getKey().toString().compareToIgnoreCase(lowerBound.toString());
-                                int string_com_upper= node.getKey().toString().compareToIgnoreCase(upperBound.toString());
-                                if((string_com_lower==1 || string_com_lower ==0 )&& (string_com_upper==-1 || string_com_upper ==0) )
-                                {
-                                    getrow=true;
-                                }
-                            }
-                            else if(node.getKey() instanceof LongValue)
-                            {
-                                if(node.getKey().toLong()>=lowerBound.toLong() && node.getKey().toLong()<=upperBound.toLong()){getrow=true;}
-                            }
-                            else if (node.getKey() instanceof DoubleValue)
-                            {
-                                if(node.getKey().toDouble()>=lowerBound.toDouble() && node.getKey().toDouble()<=upperBound.toDouble()){getrow=true;}
-                            }
-                        }
-                        // <= and >
-                        else if (IndexScan.this.softLowerBound && IndexScan.this.softUpperBound==false )
-                        {
-                            if(node.getKey()instanceof StringValue ||node.getKey()instanceof DateValue )
-                            {
-                                int string_com_lower= node.getKey().toString().compareToIgnoreCase(lowerBound.toString());
-                                int string_com_upper= node.getKey().toString().compareToIgnoreCase(upperBound.toString());
-                                if((string_com_lower==1 || string_com_lower ==0 )&& (string_com_upper==-1) )
-                                {
-                                    getrow=true;
-                                }
-                            }
-                            else if(node.getKey() instanceof LongValue)
-                            {
-                                if(node.getKey().toLong()>=lowerBound.toLong() && node.getKey().toLong()<upperBound.toLong()){getrow=true;}
-                            }
-                            else if (node.getKey() instanceof DoubleValue)
-                            {
-                                if(node.getKey().toDouble()>=lowerBound.toDouble() && node.getKey().toDouble()<upperBound.toDouble()){getrow=true;}
-                            }
-                        }
-                        else if(IndexScan.this.softLowerBound==false && IndexScan.this.softUpperBound )
-                        {
-                            if(node.getKey()instanceof StringValue ||node.getKey()instanceof DateValue )
-                            {
-                                int string_com_lower= node.getKey().toString().compareToIgnoreCase(lowerBound.toString());
-                                int string_com_upper= node.getKey().toString().compareToIgnoreCase(upperBound.toString());
-                                if((string_com_lower==1)&& (string_com_upper==-1 || string_com_upper ==0) )
-                                {
-                                    getrow=true;
-                                }
-                            }
-                            else if(node.getKey() instanceof LongValue)
-                            {
-                                if(node.getKey().toLong()>lowerBound.toLong() && node.getKey().toLong()<=upperBound.toLong()){getrow=true;}
-                            }
-                            else if (node.getKey() instanceof DoubleValue)
-                            {
-                                if(node.getKey().toDouble()>lowerBound.toDouble() && node.getKey().toDouble()<=upperBound.toDouble()){getrow=true;}
-                            }
-                        }
-                        else if (IndexScan.this.softLowerBound ==false && IndexScan.this.softUpperBound ==false )
-                        {
-                            if(node.getKey()instanceof StringValue ||node.getKey()instanceof DateValue )
-                            {
-                                int string_com_lower= node.getKey().toString().compareToIgnoreCase(lowerBound.toString());
-                                int string_com_upper= node.getKey().toString().compareToIgnoreCase(upperBound.toString());
-                                if((string_com_lower==1)&& (string_com_upper==-1) )
-                                {
-                                    getrow=true;
-                                }
-                            }
-                            else if(node.getKey() instanceof LongValue)
-                            {
-                                if(node.getKey().toLong()>lowerBound.toLong() && node.getKey().toLong()<upperBound.toLong()){getrow=true;}
-                            }
-                            else if (node.getKey() instanceof DoubleValue)
-                            {
-                                if(node.getKey().toDouble()>lowerBound.toDouble() && node.getKey().toDouble()<upperBound.toDouble()){getrow=true;}
-                            }
-                        }
-                    }
-                    if (getrow==true)
-                    {
-                        ArrayList<Long> rowPos = node.getValue();
-                        this.rowPosItr=rowPos.iterator();
-                        for(Long i : rowPos){
-                            String row= returnRow(i);
-                            Tuple returntp= new Tuple(row);
-                            //                        return returntp;
-                        }
+                    ArrayList<Long> rowPos = node.getValue();
+                    this.rowPosItr=rowPos.iterator();
+                    for(Long i : rowPos){
+                        String row= returnRow(i);
+                        Tuple returntp= new Tuple(row);
                     }
                 }
             }
             catch (IOException e){
                 e.printStackTrace();
             }
-            catch (PrimitiveValue.InvalidPrimitive e){e.printStackTrace();}
         }
 
         public String returnRow(Long i) {
@@ -269,10 +148,6 @@ public class IndexScan extends TreeNode {
                 raf.seek(i);
                 row= raf.readLine();
                 return row;
-                //Zhenyu PLEASE LOOK INTO THIS!!
-                //convert this string to tuple and return;
-//                returntp= new Tuple(row);
-//                return returntp;
             }
             catch (IOException e) {}
             return row;
@@ -283,7 +158,6 @@ public class IndexScan extends TreeNode {
 
             String row= returnRow((Long)rowPosItr.next());
             try {
-
                 Tuple tp = new Tuple(columnDefinitions);
                 String[] columnValues = row.split("\\|");
 

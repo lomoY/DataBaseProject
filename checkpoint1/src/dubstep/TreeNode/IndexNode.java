@@ -49,13 +49,13 @@ public class IndexNode {
         List<String> indexedColumns = new ArrayList<>();
 
 
-//        if (indices != null) {
-//            for (Index i : indices) {
-//                for (String colname : i.getColumnsNames()) {
-//                    indexedColumns.add(colname);
-//                }
-//            }
-//        }
+        if (indices != null) {
+            for (Index i : indices) {
+                for (String colname : i.getColumnsNames()) {
+                    indexedColumns.add(colname);
+                }
+            }
+        }
 
 
         //          Assigning col positions
@@ -63,10 +63,10 @@ public class IndexNode {
         for (ColumnDefinition c : createTable.getColumnDefinitions()) {
             colPos.put(c.getColumnName(), position);
             colDef.put(c.getColumnName(), c.getColDataType());
-            indexedColumns.add(c.getColumnName());
+//            indexedColumns.add(c.getColumnName());
             position++;
         }
-//        System.out.println("Indexed Columns " + indexedColumns);
+        System.out.println("Indexed Columns " + indexedColumns);
         try {
             br = new BufferedReader(new FileReader(IndexNode.this.TableFile));
             raf=  new RandomAccessFile(IndexNode.this.TableFile, "r");
@@ -78,10 +78,10 @@ public class IndexNode {
             for (String c : indexedColumns) {
                 raf=  new RandomAccessFile(IndexNode.this.TableFile, "r");
                 TreeMap<PrimitiveValue, ArrayList<Long>> temp = new TreeMap<>(new KeyComparator());
+                pos = colPos.get(c);
                 while (raf.readLine() != null) {
                     long rowIndex = raf.getFilePointer();
                     rows = raf.readLine().split("\\|");
-                    pos = colPos.get(c);
 //                    PrimitiveValue key_val= new StringValue(rows[pos]);
                     if(colDef.get(c).getDataType().equalsIgnoreCase("string"))
                         key_val= new StringValue(rows[pos]);
@@ -119,8 +119,9 @@ public class IndexNode {
         return indexes;
     }
 
-    private class KeyComparator implements Comparator{
+    private class KeyComparator implements Comparator<PrimitiveValue>{
         public KeyComparator() {
+
         }
 
         @Override
@@ -159,7 +160,9 @@ public class IndexNode {
         }
 
         @Override
-        public int compare(Object o1, Object o2) {
+        public int compare(PrimitiveValue o1, PrimitiveValue o2) {
+
+
             if(o1 instanceof StringValue ||o2 instanceof StringValue || o1 instanceof DateValue )
             {
                 if(o1.toString().equals(o2.toString())){
@@ -170,17 +173,30 @@ public class IndexNode {
             }
             if(o1 instanceof LongValue)
             {
+//                long ol1=((LongValue) o1).toLong();
+//                long ol2=((LongValue) o2).toLong();
+//                return Long.compare(ol1, ol2);
                 if(((LongValue) o1).toLong() == ((LongValue) o2).toLong()){
                     return 0;
-                }else {
+                }else if (((LongValue) o1).toLong()< ((LongValue) o2).toLong()){
                     return -1;
                 }
+                else if (((LongValue) o1).toLong() > ((LongValue) o2).toLong()) {
+                    return 1;
+                }
             }
+
             if(o1 instanceof DoubleValue) {
+//                double od1= ((DoubleValue) o1).toDouble();
+//                double od2= ((DoubleValue) o2).toDouble();
+//                return Double.compare(od1, od2);
                 if (((DoubleValue) o1).toDouble() == ((DoubleValue) o2).toDouble()) {
                     return 0;
-                } else {
+                } else if (((DoubleValue) o1).toDouble() <((DoubleValue) o2).toDouble()){
                     return -1;
+                }
+                else if (((DoubleValue) o1).toDouble()> ((DoubleValue) o2).toDouble()){
+                    return 1;
                 }
             }
             return 0;

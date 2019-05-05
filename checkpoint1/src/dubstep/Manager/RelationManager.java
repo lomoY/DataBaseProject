@@ -18,6 +18,12 @@ public class RelationManager implements ExpressionVisitor{
 
     /**
      *
+     * ---For EquiJoin ---
+     *
+     * Column leftCol;
+     * Column rightCol;
+     *
+     * ---For Index Scan ---
      * String tableName,
      * String colName,
      * PrimitiveValue lowerBound,
@@ -28,6 +34,8 @@ public class RelationManager implements ExpressionVisitor{
      *
      */
 
+    Column leftCol;
+    Column rightCol;
     PrimitiveValue lowerBound = null;
     PrimitiveValue upperBound = null;
     boolean softLowerBound=false;
@@ -41,6 +49,16 @@ public class RelationManager implements ExpressionVisitor{
         expression.accept(this);
     }
 
+    //  For EquiJoin
+    public Column getLeftCol() {
+        return leftCol;
+    }
+
+    public Column getRightCol() {
+        return rightCol;
+    }
+
+    // For Index Scan
     public String getColName() {
         return colName;
     }
@@ -74,6 +92,10 @@ public class RelationManager implements ExpressionVisitor{
 
     }
 
+    // CASE 1: MAN.WEIGHT = WOMAN.WEIGHT
+    // CASE 2: MAN.WEIGHT = 10
+
+
     @Override
     public void visit(EqualsTo equalsTo) {
         Expression lfh = equalsTo.getLeftExpression();
@@ -96,6 +118,15 @@ public class RelationManager implements ExpressionVisitor{
                     e.printStackTrace();
                 }
             }
+        }
+
+
+
+        if(lfh instanceof Column && rhs instanceof Column){
+
+            this.leftCol=(Column)lfh;
+            this.rightCol=(Column)rhs;
+
         }
     }
 
