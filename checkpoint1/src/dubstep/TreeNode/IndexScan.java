@@ -74,35 +74,38 @@ public class IndexScan extends TreeNode {
 
             columnDefinitions = schema.getColumnDefinitions();
             SortedMap <PrimitiveValue, ArrayList<Long>> sortedMap = new TreeMap<>();
-            if(upperBound==null && !softLowerBound )
+            //>
+            if(upperBound==null && !softLowerBound && lowerBound!=null)
             {
                 sortedMap= IndexScan.this.index.headMap(lowerBound);
             }
-            else if (upperBound== null && softLowerBound)
+            //>=
+            else if (upperBound== null && softLowerBound && lowerBound!=null)
             {
                 sortedMap= IndexScan.this.index.headMap(lowerBound, true);
             }
-            else if (lowerBound== null || !softUpperBound)
+            //<
+            else if (lowerBound== null && !softUpperBound && upperBound!=null)
             {
                 sortedMap= IndexScan.this.index.tailMap(upperBound);
             }
-            else if (lowerBound == null || softUpperBound)
+            else if (lowerBound == null && softUpperBound && upperBound!=null)
             {
                 sortedMap= IndexScan.this.index.tailMap(upperBound, true);
             }
-            else  if (softUpperBound || softLowerBound)
+            else  if (softUpperBound && softLowerBound && upperBound !=null && lowerBound != null)
             {
                 sortedMap= IndexScan.this.index.subMap(lowerBound, true, upperBound, true);
             }
-            else if (softUpperBound || !softLowerBound)
+            else if (softUpperBound && !softLowerBound && upperBound !=null && lowerBound != null)
             {
                 sortedMap= IndexScan.this.index.subMap(lowerBound, false, upperBound, true);
             }
-            else if (!softUpperBound || softLowerBound)
+            else if (!softUpperBound && softLowerBound && upperBound !=null && lowerBound != null)
             {
                 sortedMap= IndexScan.this.index.subMap(lowerBound, true, upperBound, false);
             }
-            else if (!softUpperBound || !softLowerBound)
+            else if (!softUpperBound && !softLowerBound && upperBound !=null && lowerBound != null)
             {
                 sortedMap= IndexScan.this.index.subMap(lowerBound, false, upperBound, false);
             }
@@ -110,6 +113,7 @@ public class IndexScan extends TreeNode {
             {
                 sortedMap= IndexScan.this.index.subMap(lowerBound, true, lowerBound, true);
             }
+            System.out.println( sortedMap.entrySet());
             try
             {
                 raf=  new RandomAccessFile(IndexScan.this.TableFile, "r");
@@ -137,10 +141,6 @@ public class IndexScan extends TreeNode {
                 raf.seek(i);
                 row= raf.readLine();
                 return row;
-                //Zhenyu PLEASE LOOK INTO THIS!!
-                //convert this string to tuple and return;
-//                returntp= new Tuple(row);
-//                return returntp;
             }
             catch (IOException e) {}
             return row;
@@ -151,7 +151,6 @@ public class IndexScan extends TreeNode {
 
             String row= returnRow((Long)rowPosItr.next());
             try {
-
                 Tuple tp = new Tuple(columnDefinitions);
                 String[] columnValues = row.split("\\|");
 

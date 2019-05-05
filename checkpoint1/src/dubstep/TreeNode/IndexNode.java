@@ -173,14 +173,22 @@ public class IndexNode {
                 if(((LongValue) o1).toLong() == ((LongValue) o2).toLong()){
                     return 0;
                 }else {
+//                    if (((LongValue) o1).toLong()< ((LongValue) o2).toLong()){
                     return -1;
                 }
-            }
+//                else if (((LongValue) o1).toLong() > ((LongValue) o2).toLong()) {
+//                    return 1;
+//                }
+                }
+
             if(o1 instanceof DoubleValue) {
                 if (((DoubleValue) o1).toDouble() == ((DoubleValue) o2).toDouble()) {
                     return 0;
-                } else {
+                } else if (((DoubleValue) o1).toDouble() <((DoubleValue) o2).toDouble()){
                     return -1;
+                }
+                else if (((DoubleValue) o1).toDouble()> ((DoubleValue) o2).toDouble()){
+                    return 1;
                 }
             }
             return 0;
