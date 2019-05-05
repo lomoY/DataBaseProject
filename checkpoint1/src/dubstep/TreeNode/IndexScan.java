@@ -8,6 +8,7 @@ import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.Index;
 
+import java.lang.reflect.Array;
 import java.util.*;
 import java.io.*;
 import java.nio.file.Paths;
@@ -60,6 +61,12 @@ public class IndexScan extends TreeNode {
             return true;
         }
     }
+    public Set<String> getIndexes(TreeMap<String,TreeMap<PrimitiveValue, ArrayList<Long>>> tableindex){
+        IndexNode id = TableManager.getIndex(IndexScan.this.tableName);
+        TreeMap<String, TreeMap<PrimitiveValue, ArrayList<Long>>> indexCol=id.indexes;
+        return indexCol.keySet();
+    }
+
     private class Itr implements Iterator<Tuple> {
         Iterator<Tuple> lfItr;
         //        Tuple lftuple;
@@ -77,21 +84,21 @@ public class IndexScan extends TreeNode {
             //>
             if(upperBound==null && !softLowerBound && lowerBound!=null)
             {
-                sortedMap= IndexScan.this.index.headMap(lowerBound);
+                sortedMap= IndexScan.this.index.tailMap(lowerBound);
             }
             //>=
             else if (upperBound== null && softLowerBound && lowerBound!=null)
             {
-                sortedMap= IndexScan.this.index.headMap(lowerBound, true);
+                sortedMap= IndexScan.this.index.tailMap(lowerBound, true);
             }
             //<
             else if (lowerBound== null && !softUpperBound && upperBound!=null)
             {
-                sortedMap= IndexScan.this.index.tailMap(upperBound);
+                sortedMap= IndexScan.this.index.headMap(upperBound);
             }
             else if (lowerBound == null && softUpperBound && upperBound!=null)
             {
-                sortedMap= IndexScan.this.index.tailMap(upperBound, true);
+                sortedMap= IndexScan.this.index.headMap(upperBound, true);
             }
             else  if (softUpperBound && softLowerBound && upperBound !=null && lowerBound != null)
             {
