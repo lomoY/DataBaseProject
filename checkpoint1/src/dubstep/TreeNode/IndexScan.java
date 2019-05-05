@@ -61,7 +61,9 @@ public class IndexScan extends TreeNode {
             return true;
         }
     }
+
     public Set<String> getIndexes(){
+
         IndexNode id = TableManager.getIndex(IndexScan.this.tableName);
         TreeMap<String, TreeMap<PrimitiveValue, ArrayList<Long>>> indexCol=id.indexes;
         return indexCol.keySet();
