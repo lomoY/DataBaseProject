@@ -63,10 +63,10 @@ public class IndexNode {
         for (ColumnDefinition c : createTable.getColumnDefinitions()) {
             colPos.put(c.getColumnName(), position);
             colDef.put(c.getColumnName(), c.getColDataType());
-            indexedColumns.add(c.getColumnName());
+//            indexedColumns.add(c.getColumnName());
             position++;
         }
-//        System.out.println("Indexed Columns " + indexedColumns);
+        System.out.println("Indexed Columns " + indexedColumns);
         try {
             br = new BufferedReader(new FileReader(IndexNode.this.TableFile));
             raf=  new RandomAccessFile(IndexNode.this.TableFile, "r");
