@@ -76,7 +76,7 @@ public class IndexNode {
             int pos;
             PrimitiveValue key_val= null;
             for (String c : indexedColumns) {
-                raf=  new RandomAccessFile(IndexNode.this.TableFile, "rw");
+                raf=  new RandomAccessFile(IndexNode.this.TableFile, "r");
                 TreeMap<PrimitiveValue, ArrayList<Long>> temp = new TreeMap<>(new KeyComparator());
                 while (raf.readLine() != null) {
                     long rowIndex = raf.getFilePointer();

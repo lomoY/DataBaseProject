@@ -34,7 +34,10 @@ public class JoinNode extends TreeNode {
         public Itr() {
             lfItr = JoinNode.this.leftChildNode.iterator();
             rgItr = JoinNode.this.rightChildNode.iterator();
-            lftuple= lfItr.next();
+
+            if(lfItr.hasNext()){
+                lftuple= lfItr.next();
+            }
         }
 
         @Override
@@ -49,11 +52,12 @@ public class JoinNode extends TreeNode {
 
         @Override
         public boolean hasNext() {
+
             if (lfItr.hasNext()) {
                 return true;
             } else if(!lfItr.hasNext()){
 
-                if(rgItr.hasNext()==true){
+                if(lftuple!=null&&rgItr.hasNext()==true){
                     return true;
                 }else{
                     return false;
@@ -66,6 +70,7 @@ public class JoinNode extends TreeNode {
 
         @Override
         public Tuple next() {
+
             Tuple leftTp;
             Tuple rightTp;
             Tuple returnTp = new Tuple();
