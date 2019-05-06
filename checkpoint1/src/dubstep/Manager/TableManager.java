@@ -21,10 +21,11 @@ public class TableManager {
 
 //      Store Table and corresponding Schema
         String tableName = createTable.getTable().getName();
-        TableNode newTable = new TableNode(createTable);
         Schema newSchema  = new Schema(createTable);
-        TableMap.put(tableName,newTable);
         SchemaMap.put(tableName,newSchema);
+
+        TableNode newTable = new TableNode(createTable);
+        TableMap.put(tableName,newTable);
         IndexNode newIndex= new IndexNode(createTable);
         IndexMap.put(tableName,newIndex);
 //ALIIES Name

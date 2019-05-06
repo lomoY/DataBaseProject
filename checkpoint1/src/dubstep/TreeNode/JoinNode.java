@@ -1,5 +1,6 @@
 package dubstep.TreeNode;
 
+import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.select.*;
 import java.util.*;
 import java.util.Iterator;
@@ -8,6 +9,10 @@ import java.util.function.Consumer;
 
 //cross product
 public class JoinNode extends TreeNode {
+
+    List<Column> LhsColumnList = new ArrayList<>();
+    List<Column> RhsColumnList = new ArrayList<>();
+
 
     public JoinNode(FromItemNode fromItemNode, List<Join> joins) {
 
@@ -23,21 +28,22 @@ public class JoinNode extends TreeNode {
             this.setRightChildNode(Fin);
         }
         this.setLeftChildNode(fromItemNode);
+        this.LhsColumnList=leftChildNode.getLhsColumnList();
+        this.RhsColumnList=rightChildNode.getLhsColumnList();
     }
 
 
     private class Itr implements Iterator<Tuple> {
         Iterator<Tuple> lfItr;
         Iterator<Tuple> rgItr;
-        Tuple lftuple;
+        Tuple LhsTuple;
+        Tuple RhsTuple;
 
         public Itr() {
+
             lfItr = JoinNode.this.leftChildNode.iterator();
             rgItr = JoinNode.this.rightChildNode.iterator();
 
-            if(lfItr.hasNext()){
-                lftuple= lfItr.next();
-            }
         }
 
         @Override
@@ -53,44 +59,66 @@ public class JoinNode extends TreeNode {
         @Override
         public boolean hasNext() {
 
-            if (lfItr.hasNext()) {
-                return true;
-            } else if(!lfItr.hasNext()){
+            //init phase
+            if(this.LhsTuple==null){
 
-                if(lftuple!=null&&rgItr.hasNext()==true){
-                    return true;
-                }else{
+                if(lfItr.hasNext()){
+
+                    if(rgItr.hasNext()){
+
+                        this.LhsTuple=lfItr.next();
+                        this.RhsTuple=rgItr.next();
+                        return true;
+                    }else {
+                        return false;
+                    }
+
+                }else {
+
                     return false;
                 }
-            }else {
+            }
 
-                return false;
+            //has left
+            else{
+
+                if(rgItr.hasNext()){
+
+                    this.RhsTuple=rgItr.next();
+                    return true;
+
+                }else{
+
+                    if(lfItr.hasNext()){
+
+                        this.LhsTuple=lfItr.next();
+                        rgItr=JoinNode.this.rightChildNode.iterator();
+                        this.RhsTuple=rgItr.next();
+                        return true;
+
+                    }else {
+
+                        return false;
+
+                    }
+                }
+
             }
         }
 
         @Override
         public Tuple next() {
 
-            Tuple leftTp;
-            Tuple rightTp;
+
             Tuple returnTp = new Tuple();
 
-            if (rgItr.hasNext()) {
-                leftTp = this.lftuple;
-                rightTp= rgItr.next();
-            }
-            else
-            {
-                this.lftuple= lfItr.next();
-                leftTp = this.lftuple;
-                rgItr = JoinNode.this.rightChildNode.iterator();
-                rightTp= rgItr.next();
-            }
-            returnTp.columnList.addAll(leftTp.columnList);
-            returnTp.columnList.addAll(rightTp.columnList);
-            returnTp.columnValues.putAll(leftTp.columnValues);
-            returnTp.columnValues.putAll(rightTp.columnValues);
+            returnTp.columnList.addAll(this.LhsTuple.columnList);
+            returnTp.columnList.addAll(this.RhsTuple.columnList);
+            returnTp.columnValues.putAll(this.LhsTuple.columnValues);
+            returnTp.columnValues.putAll(this.RhsTuple.columnValues);
+
             return returnTp;
+
         }
     }
 

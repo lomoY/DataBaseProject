@@ -57,11 +57,14 @@ public class EquiJoinNode extends TreeNode {
 
         Iterator<Tuple> lfItr;
         Iterator<Tuple> rgItr;
-        Tuple lftuple;
+        Tuple LhsTuple;
+        Tuple RhsTuple;
 
         public Itr() {
 
-            EvaluatorManager em = new EvaluatorManager();
+            EvaluatorManager LhsEm = new EvaluatorManager();
+            EvaluatorManager RhsEm = new EvaluatorManager();
+
             lfItr = EquiJoinNode.this.leftChildNode.iterator();
             rgItr = EquiJoinNode.this.rightChildNode.iterator();
 
@@ -96,7 +99,7 @@ public class EquiJoinNode extends TreeNode {
             Iterator tableItr = LhsTable.get(1).iterator();
 
             if(lfItr.hasNext()){
-                lftuple= lfItr.next();
+                LhsTuple= lfItr.next();
             }
         }
 
@@ -113,43 +116,59 @@ public class EquiJoinNode extends TreeNode {
         @Override
         public boolean hasNext() {
 
-            if (lfItr.hasNext()) {
-                return true;
-            } else if(!lfItr.hasNext()){
+            //init phase
+            if(this.LhsTuple==null){
 
-                if(lftuple!=null&&rgItr.hasNext()==true){
-                    return true;
-                }else{
+                if(lfItr.hasNext()){
+
+                    if(rgItr.hasNext()){
+
+                        this.LhsTuple=lfItr.next();
+                        this.RhsTuple=rgItr.next();
+                        return true;
+                    }else {
+                        return false;
+                    }
+
+                }else {
+
                     return false;
                 }
-            }else {
+            }
+            //has left
+            else{
 
-                return false;
+                if(rgItr.hasNext()){
+
+                    this.RhsTuple=rgItr.next();
+                    return true;
+
+                }else{
+
+                    if(lfItr.hasNext()){
+
+                        this.LhsTuple=lfItr.next();
+                        rgItr=EquiJoinNode.this.rightChildNode.iterator();
+                        this.RhsTuple=rgItr.next();
+                        return true;
+                    }else {
+                        return false;
+                    }
+                }
+
             }
         }
 
         @Override
         public Tuple next() {
 
-            Tuple leftTp;
-            Tuple rightTp;
             Tuple returnTp = new Tuple();
 
-            if (rgItr.hasNext()) {
-                leftTp = this.lftuple;
-                rightTp= rgItr.next();
-            }
-            else
-            {
-                this.lftuple= lfItr.next();
-                leftTp = this.lftuple;
-                rgItr = EquiJoinNode.this.rightChildNode.iterator();
-                rightTp= rgItr.next();
-            }
-            returnTp.columnList.addAll(leftTp.columnList);
-            returnTp.columnList.addAll(rightTp.columnList);
-            returnTp.columnValues.putAll(leftTp.columnValues);
-            returnTp.columnValues.putAll(rightTp.columnValues);
+            returnTp.columnList.addAll(this.LhsTuple.columnList);
+            returnTp.columnList.addAll(this.RhsTuple.columnList);
+            returnTp.columnValues.putAll(this.LhsTuple.columnValues);
+            returnTp.columnValues.putAll(this.RhsTuple.columnValues);
+
             return returnTp;
         }
     }

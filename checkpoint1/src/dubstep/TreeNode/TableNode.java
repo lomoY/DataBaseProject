@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Spliterator;
@@ -26,17 +27,26 @@ import java.util.function.Consumer;
  */
 
 public class TableNode extends TreeNode implements IntoTableVisitor {
+
     String TableName;
     String aliasValue;
     Table TableObj;
     File TableFile;
+    List<Column> LhsColumnList = new ArrayList<>();
+
 
     public TableNode(CreateTable createTable) {
 
         this.TableName=createTable.getTable().getName();
         this.TableObj=createTable.getTable();
-//        this.TableFile = Paths.get("data",TableName+".csv").toFile();
-        this.TableFile = Paths.get("G:/UB/Spring'19/DB/cse562-master/DataBaseProject_1/checkpoint1/test/NBA_Examples", "PLAYERS.csv").toFile();
+        Schema schema=TableManager.getSchema(TableName);
+        this.LhsColumnList=schema.getColumnList();
+        this.TableFile = Paths.get("data",TableName+".csv").toFile();
+
+    }
+
+    public List<Column> getLhsColumnList() {
+        return LhsColumnList;
     }
 
     public Table getTableObj() {

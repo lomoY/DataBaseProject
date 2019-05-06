@@ -23,12 +23,50 @@ public class ProjectionNode extends TreeNode implements SelectItemVisitor {
     List<Column> groupByColumns;
     Schema schema;
     EvaluatorManager projectEm;
+//    List<Column> LhsColumnList = new ArrayList<>();
 
     public ProjectionNode(PlainSelect plainSelect) {
 
 //        set columns that need to be projected
 
         setSelectAttr(plainSelect.getSelectItems());
+
+        // set columnList
+        for(SelectExpressionItem sei:this.projectAttrs){
+
+            Expression es = sei.getExpression();
+            String alias = sei.getAlias();
+
+            if(es instanceof Column) {
+
+                if(alias!=null){
+                    ((Column) es).setColumnName(alias);
+                }
+
+                this.LhsColumnList.add((Column) es);
+            }
+
+            if(es instanceof Function) {
+
+                Column cl = new Column();
+                Table tb = new Table();
+
+                if(alias!=null){
+
+                    cl.setColumnName(alias);
+
+                }else{
+
+                    cl.setColumnName(((Function) es).getName());
+                }
+                cl.setTable(tb);
+
+                this.LhsColumnList.add(cl);
+
+            }
+
+        }
+
 //        Set SelectionNode as Child
         Expression whereCondition = plainSelect.getWhere();
         if(whereCondition!=null){
@@ -58,13 +96,6 @@ public class ProjectionNode extends TreeNode implements SelectItemVisitor {
                 this.leftChildNode.setLeftChildNode(fromItemNode);
             }
         }
-
-        //old version
-//        if(leftChildNode==null){
-//                this.setLeftChildNode(fromItemNode);
-//        }else{
-//            this.leftChildNode.setLeftChildNode(fromItemNode);
-//        }
 
 
         this.groupByColumns=plainSelect.getGroupByColumnReferences();
@@ -111,11 +142,13 @@ public class ProjectionNode extends TreeNode implements SelectItemVisitor {
 
         @Override
         public boolean hasNext() {
+
             if(lfir.hasNext()){
                 return true;
             }else {
                 return false;
             }
+
         }
 
         @Override

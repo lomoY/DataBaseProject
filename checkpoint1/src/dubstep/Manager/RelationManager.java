@@ -17,13 +17,26 @@ import net.sf.jsqlparser.statement.select.SubSelect;
 public class RelationManager implements ExpressionVisitor{
 
     /**
+     * For Selection Node
+     *
+     * Selection and TableNode
+     *
+     */
+    Expression whereExpression;
+
+    /**
      *
      * ---For EquiJoin ---
      *
      * Column leftCol;
      * Column rightCol;
-     *
-     * ---For Index Scan ---
+     */
+
+
+    Column leftCol;
+    Column rightCol;
+
+    /** ---For Index Scan ---
      * String tableName,
      * String colName,
      * PrimitiveValue lowerBound,
@@ -34,8 +47,7 @@ public class RelationManager implements ExpressionVisitor{
      *
      */
 
-    Column leftCol;
-    Column rightCol;
+
     PrimitiveValue lowerBound = null;
     PrimitiveValue upperBound = null;
     boolean softLowerBound=false;
@@ -47,6 +59,16 @@ public class RelationManager implements ExpressionVisitor{
     public RelationManager(Expression expression,String tableName) {
         this.tableName=tableName;
         expression.accept(this);
+        if(colName==null){
+            this.tableName=null;
+        }
+    }
+
+    //  For whereExpression
+
+
+    public Expression getWhereExpression() {
+        return whereExpression;
     }
 
     //  For EquiJoin
@@ -132,6 +154,8 @@ public class RelationManager implements ExpressionVisitor{
 
     @Override
     public void visit(GreaterThan greaterThan) {
+
+        this.whereExpression = greaterThan;
         Expression lfh = greaterThan.getLeftExpression();
         Expression rhs = greaterThan.getRightExpression();
 
@@ -153,6 +177,7 @@ public class RelationManager implements ExpressionVisitor{
 
     @Override
     public void visit(GreaterThanEquals greaterThanEquals) {
+
         Expression lfh = greaterThanEquals.getLeftExpression();
         Expression rhs = greaterThanEquals.getRightExpression();
 
@@ -190,6 +215,8 @@ public class RelationManager implements ExpressionVisitor{
 
     @Override
     public void visit(MinorThan minorThan) {
+
+        this.whereExpression = minorThan;
         Expression lfh = minorThan.getLeftExpression();
         Expression rhs = minorThan.getRightExpression();
 

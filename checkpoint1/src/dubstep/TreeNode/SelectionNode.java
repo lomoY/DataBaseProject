@@ -3,16 +3,24 @@ package dubstep.TreeNode;
 import dubstep.Manager.EvaluatorManager;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.PrimitiveValue.InvalidPrimitive;
+import net.sf.jsqlparser.schema.Column;
+
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 
 public class SelectionNode  extends TreeNode {
 
     private  Expression whereCondition;
+    List<Column> LhsColumnList = new ArrayList<>();
+
 
     public SelectionNode(Expression whereExpression) {
+
         this.whereCondition = whereExpression;
+
     }
 
     private class Itr implements Iterator<Tuple>{
@@ -79,5 +87,9 @@ public class SelectionNode  extends TreeNode {
 
     public Expression getWhereCondition() {
         return whereCondition;
+    }
+
+    public List<Column> getColumnList() {
+        return LhsColumnList;
     }
 }

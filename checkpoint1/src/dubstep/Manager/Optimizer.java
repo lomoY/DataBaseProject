@@ -13,7 +13,10 @@ import net.sf.jsqlparser.expression.Expression;
  */
 
 import dubstep.TreeNode.*;
+import net.sf.jsqlparser.schema.Column;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -32,7 +35,8 @@ public class Optimizer{
 
     public Optimizer(TreeNode parseTree) {
 
-        this.oldTree=parseTree;
+//        this.oldTree=parseTree;
+        this.oldTree=schemaGenerator(parseTree);
 
     }
 
@@ -108,6 +112,8 @@ public class Optimizer{
                 String tableName = tn.getTableName();
                 RelationManager rm = new RelationManager(whereCondition,tableName);
 
+
+                // check if use IndexScan or not
                 /**
                  *
                  * String tableName,
@@ -120,12 +126,31 @@ public class Optimizer{
                  *
                  */
 
+
                 IndexScan is = new IndexScan(tableName, rm.getColName(),rm.getLowerBound(),rm.getUpperBound(),rm.getEquals(),rm.getSoftLowerBound(),rm.getSoftUpperBound());
                 Set<String> keySet=is.getIndexes();
+//
+//                if(rm.getColName()!=null&&keySet.contains(rm.getColName())){
+//
+//                    lftChild=is;
+//
+//                }else{
+//                    if(rm.getTableName()==tn.getTableName()){
+//                        SelectionNode sn= new SelectionNode(rm.getWhereExpression());
+//                        sn.setLeftChildNode(tn);
+//                        lftChild=sn;
+//                    }else{
+//                        lftChild=tn;
+//                    }
+//
+//                }
 
-                if(keySet.contains(rm.getColName())){
-
-                    lftChild=is;
+                if(rm.getTableName()==tn.getTableName()){
+                    SelectionNode sn= new SelectionNode(rm.getWhereExpression());
+                    sn.setLeftChildNode(tn);
+                    lftChild=sn;
+                }else{
+                    lftChild=tn;
                 }
 
                 return lftChild;
@@ -151,5 +176,53 @@ public class Optimizer{
         return lftChild;
     }
 
+    /**
+     *
+     * schemaGenerator will accept parseTree as value
+     * and generate the columnList in each TreeNode, here,
+     * I treat columnList as the schema of a corresponding TreeNode
+     *
+     */
 
+    private TreeNode schemaGenerator(TreeNode treeNode){
+
+        if(!(treeNode.getLeftChildNode()instanceof TableNode)){
+
+            if(treeNode instanceof JoinNode){
+
+                TreeNode LhsNode = treeNode.getLeftChildNode();
+                TreeNode RhsNode = treeNode.getRightChildNode();
+
+//                Shallow Copy
+                List<Column> temp = schemaGenerator(LhsNode).getLhsColumnList();
+                List<Column> temp2 = schemaGenerator(RhsNode).getLhsColumnList();
+                List<Column> temp3 = new ArrayList<>(temp);
+                temp3.addAll(temp2);
+
+                treeNode.setLhsColumnList(temp3);
+                return treeNode;
+
+            }
+            else if(treeNode instanceof ProjectionNode){
+
+//                treeNode.setLhsColumnList(treeNode.);
+                //todo determine weather should i add column from child node to the columnList of treeNode.
+                schemaGenerator(treeNode.getLeftChildNode());
+                return treeNode;
+
+            }
+            else {
+
+                treeNode.setLhsColumnList(schemaGenerator(treeNode.getLeftChildNode()).getLhsColumnList());
+                return treeNode;
+
+            }
+
+        }else {
+
+            treeNode.setLhsColumnList(treeNode.getLeftChildNode().getLhsColumnList());
+            return treeNode;
+
+        }
+    }
 }

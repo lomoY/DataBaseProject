@@ -2,9 +2,13 @@ package dubstep.TreeNode;
 
 import dubstep.Manager.ProjectionTypeNode;
 import dubstep.Manager.TableManager;
+import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.*;
+
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 
@@ -18,6 +22,7 @@ import java.util.function.Consumer;
 
 public class FromItemNode extends TreeNode implements FromItemVisitor {
 
+    List<Column> LhsColumnList = new ArrayList<>();
 
     public FromItemNode(FromItem fromItem) {
         fromItem.accept(this);
@@ -85,6 +90,7 @@ public class FromItemNode extends TreeNode implements FromItemVisitor {
             td.setAliasValue(table.getAlias());
         }
         this.leftChildNode= TableManager.getTable(tableName);
+//        this.LhsColumnList=this.leftChildNode.getLhsColumnList();
 
     }
 
@@ -98,6 +104,7 @@ public class FromItemNode extends TreeNode implements FromItemVisitor {
 //    subselect = select
     @Override
     public void visit(SubSelect subSelect) {
-            this.leftChildNode = new ProjectionTypeNode(subSelect.getSelectBody());
+        this.leftChildNode = new ProjectionTypeNode(subSelect.getSelectBody());
+        this.LhsColumnList=this.leftChildNode.getLhsColumnList();
     }
 }
