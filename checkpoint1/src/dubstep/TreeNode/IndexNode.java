@@ -83,7 +83,7 @@ public class IndexNode {
                 int isDateType=0;
                 int isDoubleType=0;
                 int isLongType=0;
-                if(colDef.get(c).getDataType().equalsIgnoreCase("string") || colDef.get(c).getDataType().equalsIgnoreCase("string")||colDef.get(c).getDataType().equalsIgnoreCase("string"))
+                if(colDef.get(c).getDataType().equalsIgnoreCase("string") || colDef.get(c).getDataType().equalsIgnoreCase("varchar")||colDef.get(c).getDataType().equalsIgnoreCase("char"))
                 {
                     isStringtype=1;
                 }
