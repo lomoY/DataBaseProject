@@ -33,8 +33,8 @@ public class IndexNode {
     public IndexNode(CreateTable createTable) {
 
         this.TableName = createTable.getTable().getName();
-//          this.TableFile = Paths.get("data",TableName+".csv").toFile();
-        this.TableFile = Paths.get("G:/UB/Spring'19/DB/cse562-master/DataBaseProject_1/checkpoint1/test/NBA_Examples", "PLAYERS.csv").toFile();
+          this.TableFile = Paths.get("data",TableName+".csv").toFile();
+//        this.TableFile = Paths.get("G:/UB/Spring'19/DB/cse562-master/DataBaseProject_1/checkpoint1/test/NBA_Examples", "PLAYERS.csv").toFile();
         this.indexes = getIndex(createTable);
 
     }
@@ -66,7 +66,7 @@ public class IndexNode {
 //            indexedColumns.add(c.getColumnName());
             position++;
         }
-        System.out.println("Indexed Columns " + indexedColumns);
+//        System.out.println("Indexed Columns " + indexedColumns);
         try {
             br = new BufferedReader(new FileReader(IndexNode.this.TableFile));
             raf=  new RandomAccessFile(IndexNode.this.TableFile, "r");
@@ -79,19 +79,47 @@ public class IndexNode {
                 raf=  new RandomAccessFile(IndexNode.this.TableFile, "r");
                 TreeMap<PrimitiveValue, ArrayList<Long>> temp = new TreeMap<>(new KeyComparator());
                 pos = colPos.get(c);
+                int isStringtype=0;
+                int isDateType=0;
+                int isDoubleType=0;
+                int isLongType=0;
+                if(colDef.get(c).getDataType().equalsIgnoreCase("string") || colDef.get(c).getDataType().equalsIgnoreCase("string")||colDef.get(c).getDataType().equalsIgnoreCase("string"))
+                {
+                    isStringtype=1;
+                }
+                else if(colDef.get(c).getDataType().equalsIgnoreCase("double"))
+                {
+                    isDoubleType=1;
+                }
+                else if(colDef.get(c).getDataType().equalsIgnoreCase("int"))
+                {
+                    isLongType=1;
+                }
+                else if(colDef.get(c).getDataType().equalsIgnoreCase("date"))
+                {
+                    isDateType=1;
+                }
+
+
+
                 while (raf.readLine() != null) {
                     long rowIndex = raf.getFilePointer();
                     rows = raf.readLine().split("\\|");
-//                    PrimitiveValue key_val= new StringValue(rows[pos]);
-                    if(colDef.get(c).getDataType().equalsIgnoreCase("string"))
+                    if(isStringtype==1)
+                    {
                         key_val= new StringValue(rows[pos]);
-                    if(colDef.get(c).getDataType().equalsIgnoreCase("double"))
+                    }
+                    else if (isDoubleType==1)
+                    {
                         key_val= new DoubleValue(rows[pos]);
-                    if(colDef.get(c).getDataType().equalsIgnoreCase("int"))
+                    }
+                    else if (isLongType==1)
+                    {
                         key_val= new LongValue(rows[pos]);
-                    if(colDef.get(c).getDataType().equalsIgnoreCase("date"))
-                        key_val= new DateValue(rows[pos]);
-
+                    }
+                    else if (isDateType==1) {
+                        key_val = new DateValue(rows[pos]);
+                    }
                     tempString = key_val;
 //                    System.out.println(tempString);
 
@@ -173,33 +201,16 @@ public class IndexNode {
             }
             if(o1 instanceof LongValue)
             {
-//                long ol1=((LongValue) o1).toLong();
-//                long ol2=((LongValue) o2).toLong();
-//                return Long.compare(ol1, ol2);
-                if(((LongValue) o1).toLong() == ((LongValue) o2).toLong()){
-                    return 0;
-                }else if (((LongValue) o1).toLong()< ((LongValue) o2).toLong()){
-                    return -1;
+                long ol1=((LongValue) o1).toLong();
+                long ol2=((LongValue) o2).toLong();
+                return Long.compare(ol1, ol2);
                 }
-                else if (((LongValue) o1).toLong() > ((LongValue) o2).toLong()) {
-                    return 1;
-                }
-
-            }
-
 
             if(o1 instanceof DoubleValue) {
-//                double od1= ((DoubleValue) o1).toDouble();
-//                double od2= ((DoubleValue) o2).toDouble();
-//                return Double.compare(od1, od2);
-                if (((DoubleValue) o1).toDouble() == ((DoubleValue) o2).toDouble()) {
-                    return 0;
-                } else if (((DoubleValue) o1).toDouble() <((DoubleValue) o2).toDouble()){
-                    return -1;
-                }
-                else if (((DoubleValue) o1).toDouble()> ((DoubleValue) o2).toDouble()){
-                    return 1;
-                }
+                double od1= ((DoubleValue) o1).toDouble();
+                double od2= ((DoubleValue) o2).toDouble();
+                return Double.compare(od1, od2);
+
             }
             return 0;
         }

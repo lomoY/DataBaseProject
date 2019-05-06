@@ -87,7 +87,7 @@ public class IndexScan extends TreeNode {
             //>
             if(upperBound==null && !softLowerBound && lowerBound!=null)
             {
-                sortedMap= IndexScan.this.index.tailMap(lowerBound);
+                sortedMap= IndexScan.this.index.tailMap(lowerBound, false);
             }
             //>=
             else if (upperBound== null && softLowerBound && lowerBound!=null)
@@ -97,7 +97,7 @@ public class IndexScan extends TreeNode {
             //<
             else if (lowerBound== null && !softUpperBound && upperBound!=null)
             {
-                sortedMap= IndexScan.this.index.headMap(upperBound);
+                sortedMap= IndexScan.this.index.headMap(upperBound, false);
             }
             else if (lowerBound == null && softUpperBound && upperBound!=null)
             {
@@ -123,7 +123,7 @@ public class IndexScan extends TreeNode {
             {
                 sortedMap= IndexScan.this.index.subMap(lowerBound, true, lowerBound, true);
             }
-            System.out.println( sortedMap.entrySet());
+//            System.out.println( sortedMap.entrySet());
             try
             {
                 raf=  new RandomAccessFile(IndexScan.this.TableFile, "r");

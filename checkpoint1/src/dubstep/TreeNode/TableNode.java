@@ -42,7 +42,7 @@ public class TableNode extends TreeNode implements IntoTableVisitor {
         Schema schema=TableManager.getSchema(TableName);
         this.LhsColumnList=schema.getColumnList();
         this.TableFile = Paths.get("data",TableName+".csv").toFile();
-
+//        this.TableFile = Paths.get("G:/UB/Spring'19/DB/cse562-master/DataBaseProject_1/checkpoint1/test/NBA_Examples", "PLAYERS.csv").toFile();
     }
 
     public List<Column> getLhsColumnList() {
